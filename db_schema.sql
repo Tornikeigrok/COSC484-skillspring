@@ -35,8 +35,9 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    password_updated_at TIMESTAMPTZ DEFAULT NOW(),
     first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL
+    last_name TEXT NOT NULL,
     role user_role NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

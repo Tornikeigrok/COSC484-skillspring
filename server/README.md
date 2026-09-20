@@ -16,4 +16,5 @@
    npm run dev
    ```
 
+5. For migrations, there is a script in package.json -> npm run db:migrate
 Server runs on the port set in `SERVER_PORT`

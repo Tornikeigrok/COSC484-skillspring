@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { allowedOrigins } = require('./utils/allowedOrigins');
 const app = express();
+const connectDB = require('./db');
 
 const allowedOr = allowedOrigins(process.env.ALLOWED_ORIGINS);
 const serverPort = process.env.SERVER_PORT;
@@ -15,8 +16,10 @@ app.use(cors({
 app.use(express.json());
 
 if (require.main === module) {
-    app.listen(serverPort, () => {
-        console.log(`server running on: ${serverPort}`);
+    connectDB().then(() => {
+        app.listen(serverPort, () => {
+            console.log(`server running on: ${serverPort}`);
+        });
     });
 }
 

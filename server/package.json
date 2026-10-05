@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "test": "jest --passWithNoTests",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "db:migrate": "sequelize-cli db:migrate"
   },
   "keywords": [],
   "author": "",
@@ -13,13 +14,17 @@
   "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jest": "^30.5.1",
-    "mongoose": "^9.10.3",
+    "jsonwebtoken": "^9.0.3",
     "nodemon": "^3.1.14",
+    "pg": "^8.23.0",
     "redis": "^6.2.1",
+    "sequelize": "^6.37.8",
+    "sequelize-cli": "^6.6.5",
     "socket.io": "^4.8.3"
   }
 }

@@ -65,7 +65,6 @@ CREATE TABLE companies (
 CREATE TABLE students (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
     bio TEXT,
     github_url TEXT,
     university TEXT,

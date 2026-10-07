@@ -2,9 +2,9 @@ const { verifyToken } = require('../services/tokenService');
 const { UnauthorizedError } = require('../utils/httpExceptions');
 
 function authMiddleware(req, res, next) {
-    const token = req.headers.cookie;
+    const token = req.cookie && req.cookies.token;
     if (!token) {
-        throw new UnauthorizedError('Unauthorize,d missing token [authMiddleware]');
+        throw new UnauthorizedError('Unauthorized missing token [authMiddleware]');
     }
     try {
         req.user = verifyToken(token);

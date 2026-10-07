@@ -86,8 +86,8 @@ module.exports = {
     },
 
     //Added login functions
-    loginStudent: async (email, password) => login(email, password, ROLE.STUDENT),
-    loginBusiness: async (email, password) => login(email, password, ROLE.BUSINESS),
+    loginStudent: (email, password) => login(email, password, ROLE.STUDENT),
+    loginBusiness: (email, password) => login(email, password, ROLE.BUSINESS),
     /* loginStudent: async () => {
         
     }, */

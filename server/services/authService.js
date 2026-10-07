@@ -85,10 +85,10 @@ module.exports = {
         // TODO
     },
 
-    //Added loginMethod
-    //loginStudent: async (email, password) => login(email, password, ROLE.STUDENT),
-    //loginBusiness: async (email, password) => login(email, password, ROLE.COMPANY),
-    loginStudent: async () => {
+    //Added login functions
+    loginStudent: async (email, password) => login(email, password, ROLE.STUDENT),
+    loginBusiness: async (email, password) => login(email, password, ROLE.BUSINESS),
+    /* loginStudent: async () => {
         
-    },
+    }, */
 }

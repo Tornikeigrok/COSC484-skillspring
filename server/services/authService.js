@@ -5,6 +5,28 @@ const { generateToken } = require('./tokenService');
 const bcrypt = require('bcrypt');
 const { ROLE } = require('../constants/authConstants');
 
+const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 10);
+ 
+async function login(email, password, expectedRole) {
+    const cleanEmail = validateEmail(email);
+ 
+    if (typeof password !== 'string' || password === '') {
+        throw new BadRequestError('Password is required');
+    }
+ 
+    const user = await User.findOne({ where: { email: cleanEmail } });
+ 
+    const passwordMatches = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
+ 
+    if (!user || !passwordMatches || user.role !== expectedRole) {
+        throw new UnauthorizedError('Invalid email or password');
+    }
+ 
+    const token = generateToken(user);
+ 
+    return { first_name: user.first_name, last_name: user.last_name, email: user.email, role: user.role, token };
+}
+
 module.exports = {
     registerStudent: async (firstName, lastName, email, password) => {
         const cleanFirstName = validateName(firstName, 'First name');
@@ -54,7 +76,7 @@ module.exports = {
     passwordReset: async (email) => {
         // TODO
     },
-    loginStudent: async () => {
-        
-    },
+
+    loginStudent: (email, password) => login(email, password, ROLE.STUDENT),
+    loginBusiness: (email, password) => login(email, password, ROLE.COMPANY),
 }

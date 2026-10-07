@@ -13,4 +13,13 @@ router.post('/student-register', createHandler(
     authController.registerStudent,
 ));
 
+const loginInput = (req) => ({
+    email: (req.body || {}).email,
+    password: (req.body || {}).password,
+});
+ 
+router.post('/student-login', createHandler(loginInput, authController.loginStudent));
+router.post('/business-login', createHandler(loginInput, authController.loginBusiness));
+router.post('/logout', createHandler(() => ({}), authController.logout));
+
 module.exports = router;

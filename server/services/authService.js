@@ -5,6 +5,36 @@ const { generateToken } = require('./tokenService');
 const bcrypt = require('bcrypt');
 const { ROLE } = require('../constants/authConstants');
 
+//Start of New Code
+
+// Used when no account matches the email, so a wrong email takes about as long
+// to reject as a wrong password (this stops attackers from guessing which emails exist).
+const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 10);
+ 
+// Shared by student and business login: same users table, the role decides which door you use.
+async function login(email, password, expectedRole) {
+    const cleanEmail = validateEmail(email);
+ 
+    if (typeof password !== 'string' || password === '') {
+        throw new BadRequestError('Password is required');
+    }
+ 
+    const user = await User.findOne({ where: { email: cleanEmail } });
+ 
+    const passwordMatches = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
+ 
+    // One vague message for every failure, so the response never reveals which part was wrong.
+    if (!user || !passwordMatches || user.role !== expectedRole) {
+        throw new UnauthorizedError('Invalid email or password');
+    }
+ 
+    const token = generateToken(user);
+ 
+    return { first_name: user.first_name, last_name: user.last_name, email: user.email, role: user.role, token };
+}
+
+//End of New Code
+
 module.exports = {
     registerStudent: async (firstName, lastName, email, password) => {
         const cleanFirstName = validateName(firstName, 'First name');
@@ -54,6 +84,10 @@ module.exports = {
     passwordReset: async (email) => {
         // TODO
     },
+
+    //Added loginMethod
+    //loginStudent: async (email, password) => login(email, password, ROLE.STUDENT),
+    //loginBusiness: async (email, password) => login(email, password, ROLE.COMPANY),
     loginStudent: async () => {
         
     },

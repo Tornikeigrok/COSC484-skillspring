@@ -1,0 +1,39 @@
+.sectionTitle {
+  margin-top: 32px;
+}
+
+.facts dl {
+  margin-block: 24px;
+}
+
+.facts dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding-block: 14px;
+  border-bottom: 1px solid #e7ebf2;
+  font-size: 12px;
+  line-height: var(--line-height-xs);
+}
+
+.facts dt {
+  color: var(--color-muted);
+}
+
+.facts dd {
+  max-width: 150px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.fullButton {
+  width: 100%;
+}
+
+.disclaimer {
+  margin-top: 16px;
+}

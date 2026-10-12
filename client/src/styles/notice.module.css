@@ -1,0 +1,42 @@
+.notice {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid;
+  border-radius: 12px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.notice > p:last-child {
+  margin-bottom: 0;
+}
+
+.info {
+  border-color: #dce3f5;
+  background-color: var(--color-info);
+  color: #374768;
+}
+
+.success {
+  border-color: #cde7d5;
+  background-color: #ecf7ef;
+  color: #216447;
+}
+
+.error {
+  border-color: #f1d1d8;
+  background-color: #fff3f4;
+  color: #9d2836;
+}
+
+.withAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.withAction > p {
+  margin-bottom: 0;
+}

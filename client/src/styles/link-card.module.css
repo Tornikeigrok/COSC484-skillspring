@@ -1,0 +1,53 @@
+.linkCard {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #e3e8f1;
+  border-radius: 18px;
+  background-color: var(--color-surface);
+  transition-property: color, background-color, border-color, outline-color, text-decoration-color,
+    fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.linkCard > div {
+  flex: 1;
+}
+
+.linkCard h2,
+.linkCard h3 {
+  margin-bottom: 6px;
+  font-size: 18px;
+  line-height: var(--line-height-lg);
+}
+
+.linkCard p {
+  margin: 0;
+  font-size: 12px;
+  line-height: var(--line-height-xs);
+}
+
+@media (hover: hover) {
+  .linkCard:hover {
+    border-color: var(--color-brand);
+  }
+}
+
+@media (width < 767px) {
+  .linkCard {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 22px;
+  }
+
+  .linkCard > div {
+    flex-basis: 100%;
+  }
+
+  .linkCard > span:last-child {
+    margin-left: auto;
+  }
+}

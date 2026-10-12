@@ -1,113 +1,109 @@
-import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link, Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useAuth } from '../lib/auth';
-import { api } from '../lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 import type { Role } from '../lib/types';
-import { Brand, Button, ErrorMessage, Loading } from '../components/ui';
+import { Brand, Button, Loading, buttonClass } from '../components/ui';
+import { cx } from '../utils/cx';
+import { useFetchProfile } from '../pages/dashboard/hooks/use-profile';
+import { BUSINESS_LINKS, STUDENT_LINKS } from '../constants/navigation';
+import { useLogout } from '../pages/auth/hooks/use-auth-hooks';
+import linkStyles from '../styles/links.module.css';
+import styles from './AppLayout.module.css';
 export function RequireAuth({ role }: { role?: Role }) {
-  const { user, isPending, error, refetch } = useAuth();
-  const location = useLocation();
+  const { data: user, isPending } = useFetchProfile();
   if (isPending) return <Loading />;
-  if (error)
-    return (
-      <div className="container py-12">
-        <ErrorMessage error={error} retry={() => refetch()} />
-      </div>
-    );
-  if (!user)
-    return <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} replace />;
+  if (!user) return <Navigate to="/" replace />;
   if (role && user.role !== role)
     return <Navigate to={user.role === 'student' ? '/student' : '/business'} replace />;
   return <Outlet />;
 }
 export function AppLayout() {
-  const { user } = useAuth();
+  const { data: user, isPending } = useFetchProfile();
   const navigate = useNavigate();
-  const cache = useQueryClient();
+  const queryClient = useQueryClient();
+  const logout = useLogout();
   const [menu, setMenu] = useState(false);
-  const logout = useMutation({
-    mutationFn: () => api('/auth/logout', { method: 'POST' }),
-    onSuccess: () => {
-      cache.clear();
-      cache.setQueryData(['session'], null);
-      navigate('/');
-    },
-  });
-  if (!user) return <Loading />;
+  if (isPending) return <Loading />;
+  if (!user) return <Navigate to="/" replace />;
   const student = user.role === 'student';
-  const links = student
-    ? [
-        ['/student', 'Overview'],
-        ['/tasks', 'Discover tasks'],
-        ['/student/proposals', 'My proposals'],
-        ['/assignments', 'My work'],
-        ['/profile', 'Verified experience'],
-      ]
-    : [
-        ['/business', 'Overview'],
-        ['/business/tasks', 'My tasks'],
-        ['/business/tasks/new', 'Post a task'],
-        ['/assignments', 'Assignments'],
-        ['/profile', 'Company profile'],
-      ];
+  const links = student ? STUDENT_LINKS : BUSINESS_LINKS;
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    cx(styles.navLink, isActive ? styles.navLinkActive : styles.navLinkIdle);
   return (
-    <div className="app-shell">
-      <a className="skip-link" href="#main-content">
+    <div className={styles.shell}>
+      <a className={linkStyles.skipLink} href="#main-content">
         Skip to content
       </a>
-      <aside className={`sidebar ${menu ? 'is-open' : ''}`}>
-        <Brand />
-        <p className="workspace-label">{student ? 'Student workspace' : 'Business workspace'}</p>
-        <nav aria-label="Workspace">
+      <aside className={cx(styles.sidebar, menu ? styles.sidebarOpen : styles.sidebarClosed)}>
+        <Brand className={styles.sidebarBrand} />
+        <p className={styles.workspaceLabel}>
+          {student ? 'Student workspace' : 'Business workspace'}
+        </p>
+        <nav aria-label="Workspace" className={styles.nav}>
           {links.map(([path, label]) => (
-            <NavLink key={path} to={path} end onClick={() => setMenu(false)}>
+            <NavLink
+              key={path}
+              to={path}
+              end
+              onClick={() => setMenu(false)}
+              className={navLinkClass}
+            >
               {label}
             </NavLink>
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          <NavLink to="/verification" onClick={() => setMenu(false)}>
+        <div className={styles.sidebarFooter}>
+          <NavLink to="/verification" onClick={() => setMenu(false)} className={navLinkClass}>
             Identity verification
           </NavLink>
-          <NavLink to="/settings" onClick={() => setMenu(false)}>
+          <NavLink to="/settings" onClick={() => setMenu(false)} className={navLinkClass}>
             Account settings
           </NavLink>
-          <p>
+          <p className={styles.tagline}>
             Small projects.
             <br />
             Meaningful experience.
           </p>
         </div>
       </aside>
-      <div className="app-body">
-        <header className="app-header">
+      <div className={styles.content}>
+        <header className={styles.header}>
           <Button
             variant="ghost"
-            className="menu-toggle"
+            className={styles.menuButton}
             aria-expanded={menu}
             aria-label="Toggle navigation"
             onClick={() => setMenu(!menu)}
           >
             ☰
           </Button>
-          <span className="muted text-sm">Your next step starts here.</span>
-          <div className="row">
-            <Link to="/profile" className="avatar" aria-label="View profile">
+          <span className={styles.greeting}>Your next step starts here.</span>
+          <div className={styles.account}>
+            <Link to="/profile" className={styles.avatar} aria-label="View profile">
               {user.first_name[0]}
               {user.last_name[0]}
             </Link>
-            <span className="header-name">{user.first_name}</span>
-            <Button variant="ghost" busy={logout.isPending} onClick={() => logout.mutate()}>
+            <span className={styles.userName}>{user.first_name}</span>
+            <Button
+              variant="ghost"
+              busy={logout.isPending}
+              onClick={() =>
+                logout.mutate(undefined, {
+                  onSuccess: () => {
+                    queryClient.clear();
+                    navigate('/');
+                  },
+                })
+              }
+            >
               Log out
             </Button>
           </div>
         </header>
-        <main id="main-content" className="workspace">
-          <ErrorMessage error={logout.error} />
+        <main id="main-content" className={styles.main}>
           <Outlet />
         </main>
-        <footer className="app-footer">SkillSpring · Real work. Real growth.</footer>
+        <footer className={styles.footer}>SkillSpring · Real work. Real growth.</footer>
       </div>
     </div>
   );
@@ -115,24 +111,24 @@ export function AppLayout() {
 export function PublicLayout() {
   return (
     <>
-      <header className="public-header">
-        <Brand />
-        <nav aria-label="Main">
-          <Link to="/tasks">Explore tasks</Link>
+      <header className={styles.publicHeader}>
+        <Brand className={styles.publicBrand} />
+        <nav aria-label="Main" className={styles.publicNav}>
+          <Link to="/tasks" className={styles.hideOnMobile}>
+            Explore tasks
+          </Link>
           <Link to="/login">Log in</Link>
-          <Link className="button button-primary" to="/register">
+          <Link className={buttonClass('primary', styles.publicCta)} to="/register">
             Get started
           </Link>
         </nav>
       </header>
-      <main id="main-content" className="container py-10">
+      <main id="main-content" className={styles.publicMain}>
         <Outlet />
       </main>
     </>
   );
 }
 export function TaskLayout() {
-  const { user, isPending } = useAuth();
-  if (isPending) return <Loading />;
-  return user ? <AppLayout /> : <PublicLayout />;
+  return <AppLayout />;
 }

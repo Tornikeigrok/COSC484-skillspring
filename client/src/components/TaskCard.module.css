@@ -1,0 +1,65 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.card h2 {
+  margin-top: 22px;
+  font-size: 20px;
+  line-height: var(--line-height-xl);
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.category {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.company {
+  margin-bottom: 14px;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: var(--line-height-xs);
+}
+
+.description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e9f2;
+  color: var(--color-muted);
+  font-size: 11px;
+}

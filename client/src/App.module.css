@@ -1,0 +1,15 @@
+.page {
+  width: min(1240px, calc(100% - 64px));
+  margin-inline: auto;
+  padding-block: 48px;
+}
+
+.title {
+  margin-top: 32px;
+}
+
+@media (width < 767px) {
+  .page {
+    width: calc(100% - 36px);
+  }
+}

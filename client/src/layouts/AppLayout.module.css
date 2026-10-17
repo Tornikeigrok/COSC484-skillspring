@@ -1,0 +1,274 @@
+.shell {
+  display: flex;
+  min-height: 100dvh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 250px;
+  height: 100dvh;
+  padding-block: 30px;
+  padding-inline: 22px;
+  border-right: 1px solid #e1e6f0;
+  background-color: var(--color-surface);
+}
+
+.sidebarBrand {
+  padding-left: 8px;
+  font-size: 22px;
+}
+
+.sidebarBrand > span:first-child {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+}
+
+.workspaceLabel {
+  margin: 40px 0 14px 12px;
+  color: var(--color-muted);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.navLink {
+  display: block;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.navLinkIdle {
+  color: var(--color-muted);
+}
+
+.navLinkActive {
+  background-color: var(--color-info);
+  color: var(--color-brand);
+}
+
+.sidebarFooter {
+  margin-top: auto;
+}
+
+.tagline {
+  margin-top: 28px;
+  margin-inline: 12px;
+  padding-top: 22px;
+  border-top: 1px solid #e1e6f0;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 83px;
+  padding: 16px 40px;
+  border-bottom: 1px solid #e1e6f0;
+  background-color: var(--color-surface);
+}
+
+.menuButton {
+  display: none;
+}
+
+.greeting {
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: var(--line-height-sm);
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  background-color: var(--color-info);
+  color: var(--color-brand);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: var(--line-height-xs);
+}
+
+.userName {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: 42px 40px 64px;
+}
+
+.footer {
+  padding: 18px 40px;
+  border-top: 1px solid #e1e6f0;
+  color: var(--color-muted);
+  font-size: 11px;
+}
+
+.publicHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 5%;
+  border-bottom: 1px solid #e1e6f0;
+  background-color: var(--color-surface);
+}
+
+.publicNav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 13px;
+}
+
+.publicMain {
+  width: min(1240px, calc(100% - 64px));
+  margin-inline: auto;
+  padding-block: 40px;
+}
+
+@media (hover: hover) {
+  .navLink:hover {
+    background-color: var(--color-canvas);
+  }
+}
+
+@media (width < 1200px) {
+  .sidebar {
+    width: 218px;
+    padding-inline: 16px;
+  }
+
+  .main {
+    padding-inline: 26px;
+  }
+}
+
+@media (width < 767px) {
+  .shell {
+    display: block;
+  }
+
+  .sidebarClosed {
+    display: none;
+  }
+
+  .sidebarOpen {
+    position: fixed;
+    top: 73px;
+    left: 0;
+    z-index: 30;
+    width: min(300px, 85vw);
+    height: calc(100dvh - 73px);
+    box-shadow: 10px 10px 30px #15223b22;
+  }
+
+  .header {
+    min-height: 73px;
+    padding: 12px 18px;
+  }
+
+  .menuButton {
+    display: inline-flex;
+    min-width: 44px;
+    font-size: 22px;
+  }
+
+  .greeting {
+    flex: 1;
+    font-size: 11px;
+  }
+
+  .account {
+    gap: 8px;
+  }
+
+  .userName {
+    display: none;
+  }
+
+  .main {
+    padding: 28px 18px 40px;
+  }
+
+  .footer {
+    padding-inline: 18px;
+  }
+
+  .publicHeader {
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .publicBrand {
+    gap: 10px;
+    font-size: 19px;
+  }
+
+  .publicBrand > span:first-child {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+  }
+
+  .publicNav {
+    gap: 12px;
+  }
+
+  .hideOnMobile {
+    display: none;
+  }
+
+  .publicCta {
+    padding: 8px 13px;
+    font-size: 12px;
+  }
+
+  .publicMain {
+    width: calc(100% - 36px);
+  }
+}
+
+@media (width < 380px) {
+  .greeting {
+    display: none;
+  }
+}

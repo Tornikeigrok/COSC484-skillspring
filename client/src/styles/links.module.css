@@ -1,0 +1,56 @@
+.textLink {
+  color: var(--color-brand);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.fileLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-block: 14px;
+  border-bottom: 1px solid #e1e6f0;
+  color: var(--color-brand);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: var(--line-height-xs);
+  overflow-wrap: anywhere;
+}
+
+.fileLink small {
+  display: block;
+  margin-top: 5px;
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.skipLink {
+  position: fixed;
+  top: -100px;
+  left: 20px;
+  z-index: 100;
+  padding: 10px 20px;
+  border: 2px solid var(--color-brand);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+  color: var(--color-brand);
+}
+
+.skipLink:focus {
+  top: 12px;
+}
+
+@media (hover: hover) {
+  .textLink:hover {
+    text-decoration-line: underline;
+    text-underline-offset: 4px;
+  }
+}

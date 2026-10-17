@@ -1,0 +1,23 @@
+.emptyState {
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+  border-radius: 14px;
+  background-color: var(--color-info);
+  color: var(--color-brand);
+  font-size: 22px;
+}
+
+.description {
+  max-width: 500px;
+  margin: 0 auto 24px;
+  color: var(--color-muted);
+}

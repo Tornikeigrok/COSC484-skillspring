@@ -1,0 +1,86 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.stat > p {
+  margin-bottom: 10px;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: var(--line-height-xs);
+}
+
+.stat > strong {
+  color: var(--color-navy);
+  font-size: 34px;
+  font-weight: 600;
+}
+
+.promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 36px;
+  border: 0;
+  background-color: var(--color-navy);
+}
+
+.promoEyebrow {
+  margin-bottom: 8px;
+  color: var(--color-lime);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.promoTitle {
+  color: #fff;
+}
+
+.promoText {
+  max-width: 650px;
+  margin-bottom: 0;
+  color: #c7d1e5;
+  font-size: 13px;
+}
+
+.promoButton {
+  flex-shrink: 0;
+}
+
+@media (width < 950px) {
+  .stats {
+    gap: 12px;
+  }
+
+  .stat {
+    padding: 20px;
+  }
+
+  .promo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (width < 767px) {
+  .stats {
+    gap: 10px;
+  }
+
+  .stat {
+    padding: 18px 12px;
+  }
+
+  .stat > p {
+    min-height: 32px;
+    font-size: 10px;
+  }
+
+  .stat > strong {
+    font-size: 28px;
+  }
+}

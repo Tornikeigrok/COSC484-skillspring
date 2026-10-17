@@ -1,0 +1,32 @@
+.experience {
+  border-left: 3px solid #70ad85;
+}
+
+.experience h2 {
+  margin-top: 20px;
+}
+
+.stars {
+  color: #94701e;
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+.summaryCard {
+  text-align: center;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin-inline: auto;
+  margin-bottom: 20px;
+  border-radius: 24px;
+  background-color: var(--color-info);
+  color: var(--color-brand);
+  font-size: 32px;
+  font-weight: 600;
+}

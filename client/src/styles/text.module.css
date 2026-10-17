@@ -1,0 +1,27 @@
+.muted {
+  color: var(--color-muted);
+}
+
+.mutedSmall {
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: var(--line-height-sm);
+}
+
+.longText {
+  margin-top: 16px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.pill {
+  display: inline-flex;
+  min-width: 230px;
+  margin-bottom: 20px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background-color: var(--color-brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}

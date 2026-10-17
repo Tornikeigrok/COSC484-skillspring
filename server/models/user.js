@@ -6,6 +6,10 @@ const { ROLE } = require('../constants/authConstants');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
+    static associate(models) {
+      User.hasOne(models.Student, { foreignKey: 'user_id' });
+      User.hasOne(models.Company, { foreignKey: 'user_id' });
+    }
   }
   User.init({
     email: {

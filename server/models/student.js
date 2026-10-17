@@ -4,6 +4,9 @@ const { VERIFICATION_STATUS } = require('../constants/authConstants');
 
 module.exports = (sequelize, DataTypes) => {
   class Student extends Model {
+    static associate(models) {
+      Student.belongsTo(models.User, { foreignKey: 'user_id' });
+    }
   }
   Student.init({
     user_id: {

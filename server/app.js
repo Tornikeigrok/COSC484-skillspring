@@ -18,12 +18,16 @@ app.use(cookieParser());
 
 app.use(express.json());
 
+// Every request arrives from proxy's IP, which is same for everyone, coutning tries for everyone
+// Trust proxy so we read the real client IP so it's distinct for every user
+app.set('trust proxy', 1); 
 
 // Wiring up all the routes/endpoints
 const authRoutes = require('../server/routes/authRoutes');
+const studentRoutes = require('../server/routes/studentRoutes');
 
 app.use('/api/auth', authRoutes);
-
+app.use('/api/student', studentRoutes);
 
 
 if (require.main === module) {

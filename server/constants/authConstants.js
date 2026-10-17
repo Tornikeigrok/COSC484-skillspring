@@ -13,9 +13,12 @@ const VERIFICATION_STATUS = {
     VERIFIED: 'verified',
 }
 
+const COOKIE_AGE = 60 * 60 * 1000;
+
 module.exports = {
     strongPasswordRegex,
     emailRegex,
     ROLE,
     VERIFICATION_STATUS,
+    COOKIE_AGE,
 }

@@ -50,7 +50,7 @@ CREATE TABLE users (
 CREATE TABLE companies (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
+    name TEXT NULLABLE,
     website TEXT,
     description TEXT,
     verification_status verification_status DEFAULT 'unverified',

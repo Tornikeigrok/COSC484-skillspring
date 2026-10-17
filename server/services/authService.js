@@ -1,94 +1,104 @@
-const { sequelize, User, Student } = require('../models');
+const { sequelize, User, Student, Company } = require('../models');
 const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
-const { ConflictError } = require('../utils/httpExceptions');
+const { ConflictError, BadRequestError, UnauthorizedError } = require('../utils/httpExceptions');
 const { generateToken } = require('./tokenService');
 const bcrypt = require('bcrypt');
 const { ROLE } = require('../constants/authConstants');
 
-//Start of New Code
-
-// Used when no account matches the email, so a wrong email takes about as long
-// to reject as a wrong password (this stops attackers from guessing which emails exist).
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 10);
- 
-// Shared by student and business login: same users table, the role decides which door you use.
+
+async function createAccount({ firstName, lastName, email, password, role, Profile }) {
+    const cleanFirstName = validateName(firstName, 'First name');
+    const cleanLastName = validateName(lastName, 'Last name');
+    const cleanEmail = validateEmail(email);
+    const cleanPassword = validatePassword(password);
+
+    const alreadyExists = await User.findOne({ where: { email: cleanEmail } });
+    if (alreadyExists) {
+        throw new ConflictError('Check your email to continue');
+    }
+
+    const hashPassword = await bcrypt.hash(cleanPassword, 10);
+
+    let user;
+    try {
+        user = await sequelize.transaction(async (t) => {
+            const newUser = await User.create({
+                first_name: cleanFirstName,
+                last_name: cleanLastName,
+                email: cleanEmail,
+                password_hash: hashPassword,
+                role,
+            }, { transaction: t });
+
+            await Profile.create({
+                user_id: newUser.id,
+            }, { transaction: t });
+
+            return newUser;
+        });
+    } catch (err) {
+        if (err.name === 'SequelizeUniqueConstraintError') {
+            throw new ConflictError('Check your email to continue');
+        }
+        throw err;
+    }
+
+    const token = generateToken(user);
+
+    return { first_name: user.first_name, last_name: user.last_name, email: user.email, token };
+}
+
 async function login(email, password, expectedRole) {
     const cleanEmail = validateEmail(email);
- 
+
     if (typeof password !== 'string' || password === '') {
         throw new BadRequestError('Password is required');
     }
- 
+
     const user = await User.findOne({ where: { email: cleanEmail } });
- 
+
     const passwordMatches = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
- 
-    // One vague message for every failure, so the response never reveals which part was wrong.
+
     if (!user || !passwordMatches || user.role !== expectedRole) {
         throw new UnauthorizedError('Invalid email or password');
     }
- 
+
     const token = generateToken(user);
- 
+
     return { first_name: user.first_name, last_name: user.last_name, email: user.email, role: user.role, token };
 }
 
-//End of New Code
-
 module.exports = {
-    registerStudent: async (firstName, lastName, email, password) => {
-        const cleanFirstName = validateName(firstName, 'First name');
-        const cleanLastName = validateName(lastName, 'Last name');
-        const cleanEmail = validateEmail(email);
-        const cleanPassword = validatePassword(password);
-
-        const alreadyExists = await User.findOne({ where: { email: cleanEmail } });
-
-        if (alreadyExists) {
-            throw new ConflictError('Check your email to continue');
-        }
-
-        const hashPassword = await bcrypt.hash(cleanPassword, 10);
-
-        let user;
-        try {
-            user = await sequelize.transaction(async (v) => {
-                const createUser = await User.create({
-                    first_name: cleanFirstName,
-                    last_name: cleanLastName,
-                    email: cleanEmail,
-                    password_hash: hashPassword,
-                    role: ROLE.STUDENT,
-                }, { transaction: v } );
-
-                await Student.create({
-                    user_id: createUser.id,
-                }, { transaction: v } );
-
-                return createUser;
-            });
-        } catch (err) {
-            if (err.name === 'SequelizeUniqueConstraintError') {
-                throw new ConflictError('Check your email to continue');
-            }
-            throw err;
-        }
-
-        const token = generateToken(user);
-
-        return { first_name: user.first_name, last_name: user.last_name, email: user.email, token };
-    },
-    registerBusiness: async () => {
-        // TODO
-    },
-    passwordReset: async (email) => {
-        // TODO
-    },
-
-    //Added login functions
+    registerStudent: (firstName, lastName, email, password) =>
+        createAccount({ firstName, lastName, email, password, role: ROLE.STUDENT, Profile: Student }),
+    registerCompany: (firstName, lastName, email, password) =>
+        createAccount({ firstName, lastName, email, password, role: ROLE.COMPANY, Profile: Company }),
     loginStudent: (email, password) => login(email, password, ROLE.STUDENT),
-    loginBusiness: (email, password) => login(email, password, ROLE.COMPANY),
-    /* loginStudent: async () => {
-        
-    }, */
+    loginCompany: (email, password) => login(email, password, ROLE.COMPANY),
+    passwordReset: async (email, currentPassword, newPassword) => {
+        const cleanEmail = validateEmail(email);
+        const cleanNewPassword = validatePassword(newPassword);
+
+        const user = await User.findOne({ where: { email: cleanEmail } });
+        const matches = user && currentPassword && await bcrypt.compare(currentPassword, user.password_hash);
+        if (!matches) {
+            throw new UnauthorizedError('Email or password is incorrect');
+        }
+
+        if (await bcrypt.compare(cleanNewPassword, user.password_hash)) {
+            throw new BadRequestError('New password must be different from your current password');
+        }
+
+        const hashNew = await bcrypt.hash(cleanNewPassword, 10);
+        await user.update({ password_hash: hashNew, password_updated_at: new Date() });
+    },
+    validateUser: async (userId) => {
+        const user = await User.findByPk(userId);
+        if (!user) {
+            throw new UnauthorizedError('Unauthorized user');
+        }
+
+        return true;
+    },
 }

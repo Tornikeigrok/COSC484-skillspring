@@ -40,4 +40,26 @@ function validatePassword(value) {
     return password;
 }
 
-module.exports = { validateUsername, validateName, validateEmail, validatePassword };
+const TOKEN_COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 1000,
+};
+ 
+function authorizedResponse({ token, ...user }) {
+    return {
+        statusCode: 200,
+        data: user,
+        cookies: [{ name: 'token', value: token, options: TOKEN_COOKIE_OPTIONS }],
+    };
+}
+
+module.exports = {
+    validateUsername,
+    validateName,
+    validateEmail,
+    validatePassword,
+    authorizedResponse,
+    TOKEN_COOKIE_OPTIONS,
+};

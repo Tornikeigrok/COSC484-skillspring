@@ -18,7 +18,7 @@ export const registerStudentSchema = loginSchema.extend({
   last_name: z.string().min(1, 'last name is required').max(80, 'last name is too long'),
   password: z
     .string()
-    .min(10, 'password must be at least 10 characters')
+    .min(8, 'password must be at least 8 characters')
     .max(72, 'password must be at most 72 characters'),
 });
 export type RegisterStudentFormData = z.infer<typeof registerStudentSchema>;

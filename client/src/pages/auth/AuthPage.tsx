@@ -138,7 +138,6 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
               label="Password"
               id="password"
               error={errors.password}
-              hint={register ? 'Use 10–72 characters. Choose a unique password.' : undefined}
             >
               <Input
                 id="password"
@@ -149,7 +148,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
             </Field>
             <FieldError message={serverError} />
             <Button type="submit" busy={registerStudent.isPending}>
-              {register ? 'Create account' : 'Log in'} <span aria-hidden="true">→</span>
+              {registerStudent.isPending ? 'Creating account...' : register ? 'Create account' : 'Log in'} <span aria-hidden="true">→</span>
             </Button>
           </form>
           <p className={styles.switch}>

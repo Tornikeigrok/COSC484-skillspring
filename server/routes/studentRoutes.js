@@ -13,4 +13,9 @@ router.get('/profile', createHandler(
     studentController.userProfile,
 ));
 
+router.get('/verification-universities', createHandler(
+    (req) => ({ uni: req.query.uni }),
+    studentController.getUniveristyMatches,
+));
+
 module.exports = router;

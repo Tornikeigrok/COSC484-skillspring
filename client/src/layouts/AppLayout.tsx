@@ -35,7 +35,7 @@ export function AppLayout() {
         Skip to content
       </a>
       <aside className={cx(styles.sidebar, menu ? styles.sidebarOpen : styles.sidebarClosed)}>
-        <Brand className={styles.sidebarBrand} />
+        <Brand className={styles.sidebarBrand} role={user?.role} />
         <p className={styles.workspaceLabel}>
           {student ? 'Student workspace' : 'Business workspace'}
         </p>

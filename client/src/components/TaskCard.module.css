@@ -1,65 +1,225 @@
 .card {
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
+  container-type: inline-size;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
-.card h2 {
-  margin-top: 22px;
-  font-size: 20px;
-  line-height: var(--line-height-xl);
+.inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 12px;
 }
 
-.topRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 14px;
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-.category {
-  margin: 0;
-  color: var(--color-brand);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.thumb {
+  position: relative;
+  min-height: 120px;
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 80% 20%, rgb(255 255 255 / 55%), transparent 55%),
+    linear-gradient(135deg, var(--tint-bg), color-mix(in oklab, var(--tint-fg) 35%, var(--tint-bg)));
+}
+
+.thumbTag {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface);
+  color: var(--tint-fg);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.body {
+  min-width: 0;
+  padding: 0 4px;
 }
 
 .company {
-  margin-bottom: 14px;
-  color: var(--color-muted);
-  font-size: 12px;
-  line-height: var(--line-height-xs);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  color: var(--color-navy);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.verified {
+  width: 16px;
+  height: 16px;
+  color: var(--color-brand);
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.title a:hover {
+  color: var(--color-brand);
 }
 
 .description {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
+  margin: 0 0 10px;
   color: var(--color-muted);
   font-size: 13px;
+  line-height: 1.5;
 }
 
 .skills {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-top: auto;
-  padding-top: 12px;
+  gap: 6px;
 }
 
-.footer {
+.skills li {
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'facts save'
+    'cta cta';
+  align-items: start;
+  gap: 12px;
+  padding: 0 4px 4px;
+}
+
+.facts {
+  grid-area: facts;
+  display: grid;
+  gap: 6px;
+  color: var(--color-ink);
+  font-size: 13px;
+}
+
+.facts > div {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid #e5e9f2;
+  gap: 10px;
+}
+
+.facts dt {
   color: var(--color-muted);
-  font-size: 11px;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.save {
+  grid-area: save;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--color-navy);
+}
+
+.save:hover,
+.saveActive {
+  background-color: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.status {
+  grid-area: save;
+}
+
+.cta {
+  grid-area: cta;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  color: var(--color-navy);
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.cta:hover {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Horizontal row once the card itself is wide enough (Discover list) */
+@container (min-width: 640px) {
+  .inner {
+    grid-template-columns: 180px minmax(0, 1fr) 200px;
+    align-items: center;
+  }
+
+  .thumb {
+    height: 100%;
+    min-height: 100px;
+  }
+
+  .body {
+    padding: 0;
+  }
+
+  .meta {
+    align-self: stretch;
+    grid-template-rows: auto 1fr;
+    padding: 4px 4px 4px 0;
+  }
+
+  .cta {
+    align-self: end;
+  }
 }

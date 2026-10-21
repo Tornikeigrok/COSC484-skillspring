@@ -2,131 +2,157 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { categories } from '../../lib/types';
-import { Button, EmptyState, Field, Input, PageHeading, Select } from '../../components/ui';
+import { Button, EmptyState, FieldError } from '../../components/ui';
 import { TaskCard } from '../../components/TaskCard';
-import { DIFFICULTIES, DIFFICULTY_LABELS } from '../../constants/tasks';
-import layout from '../../styles/layout.module.css';
+import { TASK_SORTS } from '../../constants/tasks';
+import type { TaskSort } from '../../constants/tasks';
 import links from '../../styles/links.module.css';
-import { toFieldErrors, withoutError } from '../../utils/form-errors';
-import type { FieldErrors } from '../../utils/form-errors';
+import { cx } from '../../utils/cx';
 import { sampleTasks } from './constants/sample-tasks';
-import { taskFilterSchema } from './utils/tasks-validations';
+import { filterTasks } from './utils/filter-tasks';
+import { taskSearchSchema } from './utils/tasks-validations';
 import styles from './TasksPage.module.css';
 export default function TasksPage() {
   const [params, setParams] = useSearchParams();
-  const [errors, setErrors] = useState<FieldErrors>({});
-  function filter(event: FormEvent<HTMLFormElement>) {
+  const [error, setError] = useState<string>();
+  const q = params.get('q') || '';
+  const category = params.get('category') || '';
+  const sortParam = params.get('sort') || '';
+  const sort: TaskSort = sortParam in TASK_SORTS ? (sortParam as TaskSort) : 'recent';
+  const tasks = filterTasks(sampleTasks.items, { q, category, sort });
+  function update(key: string, value: string) {
+    const next = new URLSearchParams(params);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    next.delete('page');
+    setParams(next);
+  }
+  function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const result = taskFilterSchema.safeParse(
+    const result = taskSearchSchema.safeParse(
       Object.fromEntries(new FormData(event.currentTarget)),
     );
     if (!result.success) {
-      setErrors(toFieldErrors(result.error));
+      setError(result.error.issues[0]?.message);
       return;
     }
-    setErrors({});
-    const next = new URLSearchParams();
-    for (const [key, value] of Object.entries(result.data)) if (value) next.set(key, value);
-    setParams(next);
+    setError(undefined);
+    update('q', result.data.q);
   }
   return (
     <>
-      <PageHeading
-        eyebrow="DISCOVER YOUR NEXT STEP"
-        title="Small tasks. Real impact."
-        description="Find a project that fits your skills and build experience you can prove."
-      />
-      <form
-        key={params.toString()}
-        onSubmit={filter}
-        onChange={(e) => setErrors(withoutError(errors, e.target))}
-        noValidate
-        className={styles.filters}
-      >
-        <Field label="Search tasks" id="q" error={errors.q} className={styles.fullWidth}>
-          <Input
-            id="q"
-            name="q"
-            placeholder="Try React, API, or data…"
-            defaultValue={params.get('q') || ''}
-          />
-        </Field>
-        <Field label="Category" id="category">
-          <Select id="category" name="category" defaultValue={params.get('category') || ''}>
-            <option value="">All categories</option>
-            {Object.entries(categories).map(([value, label]) => (
+      <form key={q} role="search" onSubmit={search} noValidate className={styles.search}>
+        <svg className={styles.searchIcon} viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+        <label htmlFor="q" className={styles.srOnly}>
+          Search projects
+        </label>
+        <input
+          id="q"
+          name="q"
+          type="search"
+          className={styles.searchInput}
+          placeholder="Search projects, skills, or companies…"
+          defaultValue={q}
+          aria-invalid={!!error}
+          aria-describedby={error ? 'q-error' : undefined}
+          onChange={() => setError(undefined)}
+        />
+        <kbd className={styles.kbd}>Enter</kbd>
+      </form>
+      <FieldError id="q-error" message={error} />
+      <section className={styles.hero} aria-labelledby="discover-title">
+        <div className={styles.heroText}>
+          <p className={styles.eyebrow}>Real projects. Real experience.</p>
+          <h1 id="discover-title" className={styles.heroTitle}>
+            Build <span className={styles.accent}>real-world</span> experience with real companies.
+          </h1>
+          <p className={styles.heroDescription}>
+            Get hands-on experience by working on verified projects from innovative teams. Build
+            your skills, grow your portfolio, and stand out.
+          </p>
+        </div>
+        <p className={styles.heroCount}>
+          <strong>{sampleTasks.total}</strong>
+          <span>open projects from verified companies</span>
+        </p>
+      </section>
+      <div className={styles.toolbar}>
+        <div className={styles.chips} role="group" aria-label="Filter by category">
+          {[['', 'All projects'], ...Object.entries(categories)].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={cx(styles.chip, category === value && styles.chipActive)}
+              aria-pressed={category === value}
+              onClick={() => update('category', value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <label className={styles.sort}>
+          <span>Sort by:</span>
+          <select value={sort} onChange={(e) => update('sort', e.target.value)}>
+            {Object.entries(TASK_SORTS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>
             ))}
-          </Select>
-        </Field>
-        <Field label="Difficulty" id="difficulty">
-          <Select id="difficulty" name="difficulty" defaultValue={params.get('difficulty') || ''}>
-            <option value="">All levels</option>
-            {DIFFICULTIES.map((value) => (
-              <option key={value} value={value}>
-                {DIFFICULTY_LABELS[value]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Button type="submit" className={styles.fullWidth}>
-          Find tasks
-        </Button>
-      </form>
-      <>
-        <div className={styles.resultsBar}>
-          <span>
-            {sampleTasks.total} open {sampleTasks.total === 1 ? 'opportunity' : 'opportunities'}
-          </span>
-          {params.size > 0 && (
-            <Link to="/tasks" className={links.textLink}>
-              Clear filters
-            </Link>
-          )}
+          </select>
+        </label>
+      </div>
+      {tasks.length ? (
+        <div className={styles.list}>
+          {tasks.map((task) => (
+            <TaskCard key={task.id} task={task} />
+          ))}
         </div>
-        {sampleTasks.items.length ? (
-          <div className={layout.cardGrid}>
-            {sampleTasks.items.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="No tasks found">
-            Try a different search or check back when businesses post new opportunities.
-          </EmptyState>
-        )}
-        {sampleTasks.pages > 1 && (
-          <nav className={styles.pager} aria-label="Task pages">
-            <Button
-              variant="secondary"
-              disabled={sampleTasks.page <= 1}
-              onClick={() => {
-                const next = new URLSearchParams(params);
-                next.set('page', String(sampleTasks.page - 1));
-                setParams(next);
-              }}
-            >
-              Previous
-            </Button>
-            <span>
-              Page {sampleTasks.page} of {sampleTasks.pages}
-            </span>
-            <Button
-              variant="secondary"
-              disabled={sampleTasks.page >= sampleTasks.pages}
-              onClick={() => {
-                const next = new URLSearchParams(params);
-                next.set('page', String(sampleTasks.page + 1));
-                setParams(next);
-              }}
-            >
-              Next
-            </Button>
-          </nav>
-        )}
-      </>
+      ) : (
+        <EmptyState
+          title="No projects found"
+          action={
+            params.size > 0 && (
+              <Link to="/tasks" className={links.textLink}>
+                Clear filters
+              </Link>
+            )
+          }
+        >
+          Try a different search or category.
+        </EmptyState>
+      )}
+      {sampleTasks.pages > 1 && (
+        <nav className={styles.pager} aria-label="Task pages">
+          <Button
+            variant="secondary"
+            disabled={sampleTasks.page <= 1}
+            onClick={() => {
+              const next = new URLSearchParams(params);
+              next.set('page', String(sampleTasks.page - 1));
+              setParams(next);
+            }}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {sampleTasks.page} of {sampleTasks.pages}
+          </span>
+          <Button
+            variant="secondary"
+            disabled={sampleTasks.page >= sampleTasks.pages}
+            onClick={() => {
+              const next = new URLSearchParams(params);
+              next.set('page', String(sampleTasks.page + 1));
+              setParams(next);
+            }}
+          >
+            Next
+          </Button>
+        </nav>
+      )}
     </>
   );
 }

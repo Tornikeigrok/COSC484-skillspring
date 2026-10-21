@@ -1,5 +1,7 @@
 :root {
-  --color-brand: #3751cc;
+  --color-brand: #4f46e5;
+  --color-brand-hover: #4338ca;
+  --color-brand-soft: #eef0ff;
   --color-navy: #15223b;
   --color-ink: #17233f;
   --color-muted: #596982;
@@ -8,12 +10,37 @@
   --color-lime: #cdf47a;
   --color-info: #edf1ff;
   --color-line: #e3e8f2;
+
   --font-sans: 'Inter', system-ui, sans-serif;
   --line-height-xs: calc(1 / 0.75);
   --line-height-sm: calc(1.25 / 0.875);
   --line-height-lg: calc(1.75 / 1.125);
   --line-height-xl: calc(1.75 / 1.25);
   --line-height-2xl: calc(2 / 1.5);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+
+  --shadow-sm: 0 1px 2px rgb(21 34 59 / 6%);
+  --shadow-md: 0 4px 16px rgb(21 34 59 / 6%);
+  --shadow-lg: 0 12px 32px rgb(21 34 59 / 10%);
+
+  /* Category tints, keyed like `categories` in lib/types.ts */
+  --category-ui-bg: #fde4d6;
+  --category-ui-fg: #c2410c;
+  --category-api-bg: #e4e6fb;
+  --category-api-fg: #4f46e5;
+  --category-data-bg: #d9f2e6;
+  --category-data-fg: #15803d;
+  --category-component-bg: #ece4fb;
+  --category-component-fg: #7c3aed;
+  --category-script-bg: #e6f4cf;
+  --category-script-fg: #4d7c0f;
+  --category-poc-bg: #fbe0ea;
+  --category-poc-fg: #be185d;
 }
 
 *,

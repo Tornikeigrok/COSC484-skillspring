@@ -1,8 +1,6 @@
 import { z } from 'zod';
 
-export const taskFilterSchema = z.object({
-  q: z.string().max(100, 'search must be at most 100 characters'),
-  category: z.string(),
-  difficulty: z.string(),
+export const taskSearchSchema = z.object({
+  q: z.string().trim().max(100, 'search must be at most 100 characters'),
 });
-export type TaskFilterFormData = z.infer<typeof taskFilterSchema>;
+export type TaskSearchFormData = z.infer<typeof taskSearchSchema>;

@@ -1,3 +1,46 @@
-.disclaimer {
-  margin-top: 16px;
+.combobox {
+  position: relative;
+}
+
+.listbox {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  max-height: 260px;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background-color: var(--color-surface);
+  box-shadow: 0 12px 32px rgb(21 34 59 / 12%);
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  color: var(--color-ink);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.option small {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.active {
+  background-color: var(--color-info);
+}
+
+.status {
+  padding: 9px 11px;
+  color: var(--color-muted);
+  font-size: 13px;
 }

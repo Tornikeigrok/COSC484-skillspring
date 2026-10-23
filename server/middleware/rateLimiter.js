@@ -34,8 +34,20 @@ const loginRateLimiter = rateLimit({
     store: openRedisStore('login-reset'),
 });
 
+// Per user 
+const verificationLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: 3,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    passOnStoreError: false,
+    store: openRedisStore('student-verification'),
+    keyGenerator: (req) => String(req.user.userId),
+});
+
 module.exports = { 
     passwordResetLimiter,
     registerRateLimiter,
-    loginRateLimiter
+    loginRateLimiter,
+    verificationLimiter
 };

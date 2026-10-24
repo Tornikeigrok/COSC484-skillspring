@@ -5,11 +5,13 @@
   --color-navy: #15223b;
   --color-ink: #17233f;
   --color-muted: #596982;
+  --color-strikethrough: #59698291;
   --color-canvas: #f6f8fc;
   --color-surface: #ffffff;
   --color-lime: #cdf47a;
   --color-info: #edf1ff;
   --color-line: #e3e8f2;
+  --color-dashed: #c7cbd4;
 
   --font-sans: 'Inter', system-ui, sans-serif;
   --line-height-xs: calc(1 / 0.75);

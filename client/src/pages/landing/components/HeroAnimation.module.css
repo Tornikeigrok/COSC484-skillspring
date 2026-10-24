@@ -1,9 +1,9 @@
 .figure {
   margin: 0;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 14px;
-  background: rgb(255 255 255 / 3%);
+  border-radius: var(--radius-lg);
+  background: radial-gradient(70% 90% at 50% 0%, rgb(79 70 229 / 35%), transparent), var(--color-navy);
+  box-shadow: var(--shadow-lg);
 }
 
 .frame {

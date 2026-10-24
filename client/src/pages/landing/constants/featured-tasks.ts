@@ -2,22 +2,19 @@ export const FEATURED_TASKS = [
   {
     title: 'Build a responsive analytics view',
     company: 'Northstar Labs',
-    type: 'UI / UX',
-    hours: '6–8',
-    skills: ['React', 'Frontend'],
+    category: 'ui',
+    hours: '6–8 hrs',
   },
   {
     title: 'Improve API error handling',
     company: 'Aperture Tech',
-    type: 'API',
-    hours: '4–6',
-    skills: ['Node.js', 'Backend'],
+    category: 'api',
+    hours: '4–6 hrs',
   },
   {
     title: 'Clean and structure product data',
     company: 'Layerbase',
-    type: 'Data',
-    hours: '3–5',
-    skills: ['Python', 'Data'],
+    category: 'data',
+    hours: '3–5 hrs',
   },
 ];

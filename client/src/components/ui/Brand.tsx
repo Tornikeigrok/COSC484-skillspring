@@ -11,7 +11,7 @@ export function Brand({ className, role }: { className?: string, role?: Role }) 
         window.location.pathname.length === 1 ? '/' : `${role === 'student' ? '/student' : '/business'}`
       }`} 
       aria-label="SkillSpring home">
-      <span className={styles.mark} aria-hidden="true" />
+      <img className={styles.mark} src="/favicon.svg" alt="" aria-hidden="true" />
       <span>SkillSpring</span>
     </Link>
   );

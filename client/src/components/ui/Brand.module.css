@@ -13,8 +13,7 @@
 .mark {
   display: inline-block;
   flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  border-radius: 13px;
-  background-color: var(--color-brand);
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }

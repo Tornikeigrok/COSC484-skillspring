@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, m } from 'motion/react';
 import { buttonClass } from '../../../components/ui';
@@ -25,27 +26,56 @@ const TABS = [
 
 export function StepsTabs() {
   const [active, setActive] = useState<(typeof TABS)[number]['id']>('student');
+  const buttons = useRef<Array<HTMLButtonElement | null>>([]);
   const tab = TABS.find((t) => t.id === active) ?? TABS[0];
+
+  function moveFocus(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let next: number;
+    switch (event.key) {
+      case 'ArrowRight':
+        next = (index + 1) % TABS.length;
+        break;
+      case 'ArrowLeft':
+        next = (index + TABS.length - 1) % TABS.length;
+        break;
+      case 'Home':
+        next = 0;
+        break;
+      case 'End':
+        next = TABS.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    setActive(TABS[next].id);
+    buttons.current[next]?.focus();
+  }
 
   return (
     <div className={styles.tabs}>
       <div className={styles.tabList} role="tablist" aria-label="Choose your role">
-        {TABS.map((t) => (
+        {TABS.map((t, index) => (
           <button
             key={t.id}
+            ref={(element) => {
+              buttons.current[index] = element;
+            }}
             role="tab"
             type="button"
             id={`tab-${t.id}`}
             aria-selected={active === t.id}
             aria-controls="steps-panel"
+            tabIndex={active === t.id ? 0 : -1}
             className={cx(styles.tabButton, active === t.id && styles.tabActive)}
             onClick={() => setActive(t.id)}
+            onKeyDown={(event) => moveFocus(event, index)}
           >
             {t.label}
           </button>
         ))}
       </div>
-      <div id="steps-panel" role="tabpanel" aria-labelledby={`tab-${tab.id}`}>
+      <div id="steps-panel" role="tabpanel" aria-labelledby={`tab-${tab.id}`} tabIndex={0}>
         <AnimatePresence mode="wait" initial={false}>
           <m.ol
             key={tab.id}

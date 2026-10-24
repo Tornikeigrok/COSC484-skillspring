@@ -4,6 +4,8 @@ import { Brand, Badge, buttonClass } from '../../components/ui';
 import links from '../../styles/links.module.css';
 import { Reveal } from './components/Reveal';
 import { StepsTabs } from './components/StepsTabs';
+import { HeroAnimation } from './components/HeroAnimation';
+import { MobileNav } from './components/MobileNav';
 import { TASK_LIFECYCLE } from './constants/audience-steps';
 import { FAQ } from './constants/faq';
 import { FEATURED_TASKS } from './constants/featured-tasks';
@@ -37,6 +39,7 @@ export default function LandingPage() {
               <Link className={buttonClass('primary', styles.btnSm)} to="/register">
                 Get started
               </Link>
+              <MobileNav />
             </div>
           </div>
         </header>
@@ -59,6 +62,9 @@ export default function LandingPage() {
                   get reviewed, and keep a record of work that was actually approved.
                 </p>
                 <div className={styles.actions}>
+                  <Link className={buttonClass('lime', styles.btn)} to="/register?role=student">
+                    Join as a student
+                  </Link>
                   <Link className={buttonClass('dark', styles.btn)} to="/register?role=company">
                     Post a task
                   </Link>
@@ -69,40 +75,43 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </m.div>
-              <m.div
-                className={styles.preview}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div className={styles.previewHead}>
-                  <h2>Featured opportunities</h2>
-                  <span>Illustrative tasks</span>
-                </div>
-                <ul className={styles.taskList}>
-                  {FEATURED_TASKS.map((task) => (
-                    <li className={styles.task} key={task.title}>
-                      <div>
-                        <h3>{task.title}</h3>
-                        <p>
-                          {task.company} · {task.type}
-                        </p>
-                        <div className={styles.tags}>
-                          {task.skills.map((skill) => (
-                            <span className={styles.tag} key={skill}>
-                              {skill}
-                            </span>
-                          ))}
+              <div className={styles.heroAside}>
+                <HeroAnimation />
+                <m.div
+                  className={styles.preview}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div className={styles.previewHead}>
+                    <h2>Featured opportunities</h2>
+                    <span>Illustrative tasks</span>
+                  </div>
+                  <ul className={styles.taskList}>
+                    {FEATURED_TASKS.map((task) => (
+                      <li className={styles.task} key={task.title}>
+                        <div>
+                          <h3>{task.title}</h3>
+                          <p>
+                            {task.company} · {task.type}
+                          </p>
+                          <div className={styles.tags}>
+                            {task.skills.map((skill) => (
+                              <span className={styles.tag} key={skill}>
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <span className={styles.hours}>{task.hours} hrs</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/tasks" className={styles.previewLink}>
-                  Browse live opportunities ↗
-                </Link>
-              </m.div>
+                        <span className={styles.hours}>{task.hours} hrs</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/tasks" className={styles.previewLink}>
+                    Browse live opportunities ↗
+                  </Link>
+                </m.div>
+              </div>
             </div>
           </section>
 

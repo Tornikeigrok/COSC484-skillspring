@@ -1,0 +1,60 @@
+.figure {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 3%);
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 600 / 260;
+}
+
+.fallback,
+.fallbackHidden,
+.player {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fallbackHidden {
+  visibility: hidden;
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px 4px 16px;
+  color: #b2bed6;
+  font-size: 12px;
+}
+
+.control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 68px;
+  min-height: 44px;
+  border-radius: 8px;
+  color: var(--color-lime);
+  font-size: 12px;
+}
+
+.control:hover {
+  background: rgb(255 255 255 / 6%);
+}
+
+.control:focus-visible {
+  outline-color: var(--color-lime);
+  outline-offset: -3px;
+}

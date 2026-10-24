@@ -92,6 +92,12 @@
   gap: 72px;
 }
 
+.heroAside {
+  display: grid;
+  min-width: 0;
+  gap: 20px;
+}
+
 .badge {
   display: inline-block;
   margin-bottom: 20px;
@@ -157,6 +163,8 @@
 
 .previewHead {
   display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
@@ -188,6 +196,7 @@
 }
 
 .task h3 {
+  overflow-wrap: anywhere;
   margin: 0 0 2px;
   color: #fff;
   font-size: 13px;
@@ -362,6 +371,7 @@
 }
 
 .tabButton {
+  min-height: 44px;
   padding: 6px 16px;
   border-radius: 8px;
   background: none;
@@ -625,6 +635,24 @@
 }
 
 @media (width < 900px) {
+  .headerInner {
+    min-height: 64px;
+    height: auto;
+    gap: 12px;
+  }
+
+  .headerActions {
+    gap: 8px;
+  }
+
+  .headerActions .login {
+    display: none;
+  }
+
+  .headerActions .btnSm {
+    min-height: 44px;
+  }
+
   .heroInner,
   .split,
   .safetyGrid {
@@ -667,9 +695,39 @@
 
   .btn {
     flex: 1;
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .faq summary {
+    padding: 20px;
+    font-size: 15px;
+  }
+
+  .faq p {
+    padding: 0 20px 20px;
+    font-size: 14px;
+  }
+
+  .previewHead,
+  .task {
+    padding-inline: 12px;
+  }
+
+  .tabList {
+    display: flex;
+  }
+
+  .tabButton {
+    flex: 1;
+    padding-inline: 10px;
   }
 
   .footerInner {
     flex-direction: column;
   }
+}
+
+.tabs {
+  min-width: 0;
 }

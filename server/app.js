@@ -25,9 +25,11 @@ app.set('trust proxy', 1);
 // Wiring up all the routes/endpoints
 const authRoutes = require('../server/routes/authRoutes');
 const studentRoutes = require('../server/routes/studentRoutes');
+const companyRoutes = require('../server/routes/companyRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
+app.use('/api/company', companyRoutes);
 
 
 if (require.main === module) {
@@ -38,6 +40,7 @@ if (require.main === module) {
 
 app.use((err, req, res, next) => {
     const status = err.status || 500;
+    if (status === 500) console.error(err);
     res.status(status).json({ message: status === 500 ? 'Internal server error' : err.message });
 });
 

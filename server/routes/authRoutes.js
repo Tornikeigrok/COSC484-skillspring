@@ -5,12 +5,16 @@ const { createHandler } = require('../utils/handler');
 const { registerRateLimiter, loginRateLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 const authMiddleware = require('../middleware/authMiddleware');
 
-const registerInput = (req) => ({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: req.body.password,
-});
+// "|| {}" so a request with no body gets a clean 400 instead of crashing with a 500
+const registerInput = (req) => {
+    const body = req.body || {};
+    return {
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email: body.email,
+        password: body.password,
+    };
+};
 
 const loginInput = (req) => ({
     email: (req.body || {}).email,
@@ -35,11 +39,14 @@ router.post('/logout', authMiddleware, createHandler(
 ));
 
 router.post('/reset-password', passwordResetLimiter, createHandler(
-    (req) => ({
-        email: req.body.email,
-        currentPassword: req.body.currentPassword,
-        newPassword: req.body.newPassword,
-    }),
+    (req) => {
+        const body = req.body || {};
+        return {
+            email: body.email,
+            currentPassword: body.currentPassword,
+            newPassword: body.newPassword,
+        };
+    },
     authController.passwordReset,
 ));
 

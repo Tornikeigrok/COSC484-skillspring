@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { LazyMotion, MotionConfig, domAnimation, m } from 'motion/react';
 import { Brand, buttonClass } from '../../components/ui';
 import { categories } from '../../lib/types';
+import { cx } from '../../utils/cx';
 import { initials } from '../../utils/task-display';
 import links from '../../styles/links.module.css';
 import { Reveal } from './components/Reveal';
@@ -139,7 +140,11 @@ export default function LandingPage() {
           </section>
 
 
-          <section className={styles.section} id="how-it-works" aria-labelledby="how-heading">
+                    <section
+            className={cx(styles.section, styles.bandGray)}
+            id="how-it-works"
+            aria-labelledby="how-heading"
+          >
             <div className={styles.wrap}>
               <Reveal className={styles.sectionHead}>
                 <span className={styles.eyebrow}>How it works</span>
@@ -153,10 +158,10 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section className={styles.section} aria-labelledby="types-heading">
+          <section className={cx(styles.section, styles.bandWhite)} aria-labelledby="types-heading">
             <div className={styles.wrap}>
               <Reveal className={styles.sectionHead}>
-                <span className={styles.eyebrow}>What you can work on</span>
+                <span className={styles.eyebrow}>Topics to Choose From</span>
                 <h2 id="types-heading" className={styles.title}>
                   Six kinds of focused work.
                 </h2>
@@ -175,13 +180,25 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section className={styles.section} id="safety" aria-labelledby="safety-heading">
-            <div className={styles.wrap}>
-              <Reveal className={styles.sectionHead}>
+          <section
+            className={cx(styles.section, styles.bandNavy)}
+            id="safety"
+            aria-labelledby="safety-heading"
+          >
+            <div className={cx(styles.wrap, styles.safety)}>
+              <Reveal>
                 <span className={styles.eyebrow}>Safe by design</span>
                 <h2 id="safety-heading" className={styles.title}>
                   Real work, without opening up your systems.
                 </h2>
+                <div className={styles.never}>
+                  <span>Students never get access to</span>
+                  <ul>
+                    {NEVER_SHARED.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
               </Reveal>
               <div className={styles.trust}>
                 {TRUST_POINTS.map((point, index) => (
@@ -192,42 +209,42 @@ export default function LandingPage() {
                           <path d={point.icon} />
                         </svg>
                       </span>
-                      <h3>{point.title}</h3>
-                      <p>{point.text}</p>
+                      <div>
+                        <h3>{point.title}</h3>
+                        <p>{point.text}</p>
+                      </div>
                     </div>
                   </Reveal>
                 ))}
               </div>
+            </div>
+          </section>
+
+          <section
+            className={cx(styles.section, styles.bandWhite)}
+            id="faq"
+            aria-labelledby="faq-heading"
+          >
+            <div className={styles.wrap}>
+              <Reveal className={styles.sectionHead}>
+                <span className={styles.eyebrow}>FAQ</span>
+                <h2 id="faq-heading" className={styles.title}>
+                  Good to know.
+                </h2>
+              </Reveal>
               <Reveal delay={0.1}>
-                <div className={styles.never}>
-                  <span>Students never get access to</span>
-                  <ul>
-                    {NEVER_SHARED.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
+                <dl className={styles.faq}>
+                  {FAQ.map(([question, answer]) => (
+                    <div key={question}>
+                      <dt>{question}</dt>
+                      <dd>{answer}</dd>
+                    </div>
+                  ))}
+                </dl>
               </Reveal>
             </div>
           </section>
 
-          <section className={styles.section} id="faq" aria-labelledby="faq-heading">
-            <div className={styles.wrapNarrow}>
-              <Reveal>
-                <h2 id="faq-heading" className={styles.title}>
-                  Questions
-                </h2>
-                <div className={styles.faq}>
-                  {FAQ.map(([question, answer]) => (
-                    <details key={question}>
-                      <summary>{question}</summary>
-                      <p>{answer}</p>
-                    </details>
-                  ))}
-                </div>
-              </Reveal>
-            </div>
-          </section>
 
           <section className={styles.ctaSection} aria-labelledby="cta-heading">
             <Reveal className={styles.cta}>

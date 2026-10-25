@@ -1,8 +1,6 @@
 import { useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { AnimatePresence, m } from 'motion/react';
-import { buttonClass } from '../../../components/ui';
 import { cx } from '../../../utils/cx';
 import { COMPANY_STEPS, STUDENT_STEPS } from '../constants/audience-steps';
 import styles from '../LandingPage.module.css';
@@ -12,15 +10,11 @@ const TABS = [
     id: 'student',
     label: 'For students',
     steps: STUDENT_STEPS,
-    cta: 'Join as a student',
-    to: '/register?role=student',
   },
   {
     id: 'company',
     label: 'For companies',
     steps: COMPANY_STEPS,
-    cta: 'Post your first task',
-    to: '/register?role=company',
   },
 ] as const;
 
@@ -93,9 +87,6 @@ export function StepsTabs() {
             ))}
           </m.ol>
         </AnimatePresence>
-        <Link className={buttonClass('primary', styles.btn)} to={tab.to}>
-          {tab.cta}
-        </Link>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 const { User, Student, sequelize } = require('../models');
-const { BadRequestError } = require('../utils/httpExceptions');
+const { BadRequestError, ConflictError } = require('../utils/httpExceptions');
 const u = require('../us_universities.json');
 const { validateEmail } = require('../utils/authUtils');
 const redis = require('../utils/redisClient');
@@ -27,7 +27,8 @@ async function validateVerificationCode(userId, code) {
     if (pending.hashedCode !== providedCode) {
         pending.attempts++;
         if (pending.attempts >= 3) {
-            await redis.del(key);
+            pending.hashedCode = null; // we gotta keep the data, only kill the code so that resend works
+            await redis.set(key, JSON.stringify(pending), { KEEPTTL: true });
             throw new BadRequestError('Too many attempts, request a new code');
         }
         await redis.set(key, JSON.stringify(pending), { KEEPTTL: true });
@@ -88,6 +89,14 @@ module.exports = {
         return { data: u.filter((e) => e.name.toLowerCase().includes(q)).slice(0, 20) }
     },
     studentVerification: async (userId, university, gradYear, uniEmail, bio) => {
+        const alreadyVerified = await Student.findOne({
+            attributes: ['verification_status'],
+            where: { user_id: userId }
+        });
+        if (alreadyVerified?.verification_status === VERIFICATION_STATUS.VERIFIED) {
+            throw new ConflictError('User is already verified');
+        }
+
         if (typeof university !== 'string' || typeof uniEmail !== 'string') {
             throw new BadRequestError('Missing fields');
         }
@@ -115,5 +124,22 @@ module.exports = {
     },
     validateVerifCode: async (userId, code) => {
         return await validateVerificationCode(userId, code);
+    },
+    resendVerification: async (userId) => {
+        const raw = await redis.get(`verify:${userId}`);
+        if (!raw) {
+            throw new BadRequestError('No pending verification, submit the form again');
+        }
+
+        // NX ensures we only create it once, if it already exists, don't
+        // Returns null if they have re-send code less than 60 secs ago
+        const cooldown = await redis.set(`resend-cooldown:${userId}`, '1', { NX: true, EX: 60 });
+
+        if (!cooldown) {
+            throw new BadRequestError('Please wait a minute before requesting a new code');
+        }
+
+        const pending = JSON.parse(raw);
+        return await sendEmailVerif(userId, pending.email, pending.university, pending.gradYear, pending.bio);
     },
 }

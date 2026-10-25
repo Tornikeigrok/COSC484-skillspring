@@ -20,7 +20,9 @@ async function fetchProfile(userId, options = {}) {
 }
 
 module.exports = {
-    companyProfile: (userId) => fetchProfile(userId),
+    companyProfile: async (userId) => {
+        return { data: await fetchProfile(userId) };
+    },
 
     // Partial update: only the fields that were sent are changed.
     // verification_status is deliberately NOT editable here (it must never come from the client).
@@ -48,6 +50,6 @@ module.exports = {
             }
         });
 
-        return fetchProfile(userId);
+        return { data: await fetchProfile(userId) };
     },
 };

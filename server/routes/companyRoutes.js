@@ -15,17 +15,14 @@ router.get('/profile', createHandler(
 ));
 
 router.patch('/profile', createHandler(
-    (req) => {
-        const body = req.body || {};
-        return {
-            userId: req.user.userId,
-            first_name: body.first_name,
-            last_name: body.last_name,
-            name: body.name,
-            description: body.description,
-            website: body.website,
-        };
-    },
+    (req) => ({
+        userId: req.user.userId,
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        name: req.body.name,
+        description: req.body.description,
+        website: req.body.website,
+    }),
     companyController.updateProfile,
 ));
 

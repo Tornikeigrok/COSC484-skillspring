@@ -13,4 +13,7 @@ module.exports = {
     validateVerificationCode: async (input) => {
         return await studentService.validateVerifCode(input.userId, input.code);
     },
+    resendVerification: async (input) => {
+        return await studentService.resendVerification(input.userId);
+    },
 }

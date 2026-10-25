@@ -44,7 +44,6 @@ export default function LandingPage() {
           <div className={styles.headerInner}>
             <Brand className={styles.brand} />
             <nav aria-label="Main" className={styles.navLinks}>
-              <Link to="/tasks">Explore tasks</Link>
               <a href="#how-it-works">How it works</a>
               <a href="#safety">Safety</a>
               <a href="#faq">FAQ</a>
@@ -264,14 +263,29 @@ export default function LandingPage() {
 
         <footer className={styles.footer}>
           <div className={styles.footerInner}>
-            <span>© {new Date().getFullYear()} SkillSpring</span>
-            <nav aria-label="Footer">
-              <Link to="/tasks">Explore tasks</Link>
-              <a href="#how-it-works">How it works</a>
-              <a href="#safety">Safety</a>
-              <Link to="/login">Log in</Link>
-              <Link to="/register?role=company">For companies</Link>
-            </nav>
+            <div className={styles.footerTop}>
+              <div className={styles.footerAbout}>
+                <Brand className={styles.brand} />
+                <p>Real tasks from real companies, so students can build experience that counts.</p>
+              </div>
+              <nav aria-label="Footer" className={styles.footerCols}>
+                <div>
+                  <h3>Product</h3>
+                  <a href="#how-it-works">How it works</a>
+                  <a href="#safety">Safety</a>
+                  <a href="#faq">FAQ</a>
+                </div>
+                <div>
+                  <h3>Get started</h3>
+                  <Link to="/register?role=student">Join as a student</Link>
+                  <Link to="/register?role=company">For companies</Link>
+                  <Link to="/login">Log in</Link>
+                </div>
+              </nav>
+            </div>
+            <div className={styles.footerBottom}>
+              <span>© {new Date().getFullYear()} SkillSpring. All rights reserved.</span>
+            </div>
           </div>
         </footer>
       </MotionConfig>

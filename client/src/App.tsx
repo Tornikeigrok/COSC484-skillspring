@@ -22,6 +22,7 @@ const AssignmentPage = lazy(() => import('./pages/assignments/AssignmentPage'));
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 const VerificationPage = lazy(() => import('./pages/verification/VerificationPage'));
+const VerificationCodePage = lazy(() => import('./pages/verification/VerificationCodePage'));
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -78,6 +79,7 @@ export default function App() {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/verification" element={<VerificationPage />} />
+                <Route path='/verification-code' element={<VerificationCodePage />} />
               </Route>
             </Route>
             <Route element={<RequireAuth role="student" />}>

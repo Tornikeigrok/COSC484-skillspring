@@ -110,6 +110,7 @@
 
 .back {
   display: block;
+  width: fit-content;
   margin-bottom: 36px;
 }
 

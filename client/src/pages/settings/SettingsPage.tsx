@@ -6,12 +6,14 @@ import {
   ConfirmDialog,
   Field,
   Input,
+  Loading,
   PageHeading,
   Textarea,
 } from '../../components/ui';
 import { toFieldErrors, withoutError } from '../../utils/form-errors';
 import type { FieldErrors } from '../../utils/form-errors';
-import { sampleProfile } from '../profile/constants/sample-profile';
+import { useFetchProfile } from '../dashboard/hooks/use-profile';
+import { toOwnProfile } from '../profile/utils/own-profile';
 import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import notice from '../../styles/notice.module.css';
@@ -23,13 +25,16 @@ import {
   studentProfileSchema,
 } from './utils/settings-validations';
 export default function SettingsPage() {
-  const { user, profile } = sampleProfile;
+  const { data: me } = useFetchProfile();
   const [saved, setSaved] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [profileErrors, setProfileErrors] = useState<FieldErrors>({});
   const [passwordErrors, setPasswordErrors] = useState<FieldErrors>({});
   const [deleteErrors, setDeleteErrors] = useState<FieldErrors>({});
+  if (!me) return <Loading />;
+  const { user, profile } = toOwnProfile(me);
+  const verified = profile.verification_status === 'verified';
   function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaved(false);
@@ -106,8 +111,17 @@ export default function SettingsPage() {
                   <Textarea id="bio" name="bio" defaultValue={profile.bio} />
                 </Field>
                 <div className={layout.fieldGrid}>
-                  <Field label="University" id="university" error={profileErrors.university}>
-                    <Input id="university" name="university" defaultValue={profile.university} />
+                  <Field
+                    label="University"
+                    id="university"
+                    error={profileErrors.university}
+                  >
+                    <Input
+                      id="university"
+                      name="university"
+                      defaultValue={profile.university}
+                      readOnly={verified}
+                    />
                   </Field>
                   <Field
                     label="Graduation year"
@@ -119,6 +133,7 @@ export default function SettingsPage() {
                       name="graduation_year"
                       type="number"
                       defaultValue={profile.graduation_year}
+                      readOnly={verified}
                     />
                   </Field>
                 </div>

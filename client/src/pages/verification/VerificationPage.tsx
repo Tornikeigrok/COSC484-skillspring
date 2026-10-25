@@ -12,21 +12,25 @@ import {
 } from '../../components/ui';
 import { toFieldErrors, withoutError } from '../../utils/form-errors';
 import type { FieldErrors } from '../../utils/form-errors';
-import { sampleProfile } from '../profile/constants/sample-profile';
+import { useFetchProfile } from '../dashboard/hooks/use-profile';
 import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import notice from '../../styles/notice.module.css';
 import { verificationSchema } from './utils/verification-validations';
-import { useUniversityMatches } from './hooks';
+import { useSendVerificationEmail, useUniversityMatches } from './hooks';
 import { useDebounce } from './utils/verification-validations';
 import styles from './VerificationPage.module.css';
+import { Dropdown, DropdownMenu, DropdownRadioGroup, DropdownRadioItem, DropdownTrigger } from '@/ui/radix-dropdown';
+import { Navigate, useNavigate } from 'react-router-dom';
 
-const thisYear = new Date().getFullYear();
-const years = Array.from({ length: 7 }, (_, i) => thisYear + i);
+const GRAD_YEARS = ['2026', '2027', '2028', '2029', '2030'];
+
 export default function VerificationPage() {
-
-  const { user, profile } = sampleProfile;
+  const navigate = useNavigate();
+  const { data: user } = useFetchProfile();
+  const status = user?.Student?.verification_status ?? 'unverified';
   const [errors, setErrors] = useState<FieldErrors>({});
+  const sendVerification = useSendVerificationEmail();
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,7 +41,10 @@ export default function VerificationPage() {
       setErrors(toFieldErrors(result.error));
       return;
     }
+    // if everything goes thru successfuly, we make the request and direct to Code page
+    // Only navigate to code page if email is sent successfuly
     setErrors({});
+    sendVerification.mutate(result.data, { onSuccess: () => navigate('/verification-code')});
   }
 
   const [universityPicker, setUniversityPicker] = useState('');
@@ -51,6 +58,7 @@ export default function VerificationPage() {
     }
   }, [debouncedUni]);
 
+  const [gradYear, setGradYear] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const matches = mutateData ?? [];
@@ -64,32 +72,28 @@ export default function VerificationPage() {
   }
 
 
+  // Verification is one-time: verified students never come back here.
+  if (status === 'verified') return <Navigate to="/student" replace />;
+
   return (
     <div className={layout.narrowPage}>
       <PageHeading
         eyebrow="BUILDING TRUST"
-        title={user.role === 'student' ? 'Student verification' : 'Business verification'}
+        title={user?.role === 'company' ? 'Business verification' : 'Student verification'}
         description="You must verify your role before being taking on the tasks."
       />
       <Card>
         <div className={layout.headerRow}>
           <h2>Verification status</h2>
-          <StatusBadge status={profile.verification_status} />
+          <StatusBadge status={status} />
         </div>
-        {profile.verification_status === 'verified' ? (
-          <p className={cx(notice.notice, notice.success)}>
-            Your profile identity has been reviewed and verified.
-          </p>
-        ) : profile.verification_status === 'pending' ? (
-          <p className={cx(notice.notice, notice.info)}>
-            Your request is pending a manual review by the project team. It will not be marked
-            verified automatically.
-          </p>
-        ) : (
           <form
             className={layout.formStack}
             onSubmit={submit}
-            onChange={(e) => setErrors(withoutError(errors, e.target))}
+            onChange={(e) => {
+              setErrors(withoutError(errors, e.target));
+              if (sendVerification.isError) sendVerification.reset();
+            }}
             noValidate
           >
             <Field label="Full name" id="full_name" error={errors.full_name}>
@@ -160,22 +164,33 @@ export default function VerificationPage() {
                 )}
               </div>
             </Field>
-            <Field label="Graduation year" id="graduation_year" error={errors.graduation_year}>
-              <Select id="graduation_year" name="graduation_year" defaultValue="" required>
-                <option value="" disabled>
-                  Select year
-                </option>
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </Select>
+            <Field label="Graduation year" id="graduation_year" error={errors.gradYear}>
+              <Dropdown>
+                <DropdownTrigger id="graduation_year" data-placeholder={gradYear ? undefined : ''}>
+                  {gradYear || 'Select a year'}
+                </DropdownTrigger>
+                <DropdownMenu>
+                  <DropdownRadioGroup
+                    value={gradYear}
+                    onValueChange={(year) => {
+                      setGradYear(year);
+                      setErrors(({ gradYear: _, ...rest }) => rest);
+                    }}
+                  >
+                    {GRAD_YEARS.map((year) => (
+                      <DropdownRadioItem key={year} value={year}>
+                        {year}
+                      </DropdownRadioItem>
+                    ))}
+                  </DropdownRadioGroup>
+                </DropdownMenu>
+              </Dropdown>
+              <input type="hidden" name="gradYear" value={gradYear} />
             </Field>
-            <Field label="University email" id="university_email" error={errors.university_email}>
+            <Field label="University email" id="university_email" error={errors.uniEmail}>
               <Input
                 id="university_email"
-                name="university_email"
+                name="uniEmail"
                 type="email"
                 placeholder="jane.doe@university.edu"
                 required
@@ -189,9 +204,23 @@ export default function VerificationPage() {
                 placeholder="A few lines about what you study and build."
               />
             </Field>
-            <Button type="submit">Request verification</Button>
+            {sendVerification.isError && (
+              <p className={cx(notice.notice, notice.error)}>{sendVerification.error.message}</p>
+            )}
+            {sendVerification.isSuccess && (
+              <p className={cx(notice.notice, notice.success)}>Check your university email for a code.</p>
+            )}
+            <Button
+              type="submit"
+              disabled={
+                sendVerification.isPending ||
+                sendVerification.isError ||
+                Object.keys(errors).length > 0
+              }
+            >
+              Request verification
+            </Button>
           </form>
-        )}
       </Card>
     </div>
   );

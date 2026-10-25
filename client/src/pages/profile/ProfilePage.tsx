@@ -122,11 +122,13 @@ export default function ProfilePage() {
             <p className={text.muted}>{student ? 'Student contributor' : 'Business partner'}</p>
             {student && profile.graduation_year && <p>Class of {profile.graduation_year}</p>}
             <hr />
-            <p className={text.mutedSmall}>
-              Identity verification is reviewed separately from project approval. A completed
-              project verifies the work, not the account holder’s identity.
-            </p>
-            {own && (
+             <p className={text.mutedSmall}>
+               {me?.Student?.verification_status === 'unverified' ? `
+               Identity verification is reviewed separately from project approval. A completed
+               project verifies the work, not the account holder’s identity. You must verify yur account before starting the work.
+               ` : 'Your profile hass been successfuly verified. You can go ahead and start gaining experience.'}
+             </p>
+            {own && me?.Student?.verification_status !== 'verified' && (
               <Link className={links.textLink} to="/verification">
                 Manage verification →
               </Link>

@@ -53,9 +53,11 @@ export function AppLayout() {
           ))}
         </nav>
         <div className={styles.sidebarFooter}>
-          <NavLink to="/verification" onClick={() => setMenu(false)} className={navLinkClass}>
-            Identity verification
-          </NavLink>
+          {user.Student?.verification_status !== 'verified' && (
+            <NavLink to="/verification" onClick={() => setMenu(false)} className={navLinkClass}>
+              Identity verification
+            </NavLink>
+          )}
           <NavLink to="/settings" onClick={() => setMenu(false)} className={navLinkClass}>
             Account settings
           </NavLink>

@@ -570,25 +570,73 @@
 /* Footer */
 
 .footer {
-  padding: 20px 24px;
-  border-top: 1px solid var(--color-line);
-  color: var(--color-muted);
+  padding: 64px 24px 28px;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+  background: linear-gradient(180deg, var(--color-navy), rgb(18 24 44));
+  color: #b2bed6;
   font-size: 12px;
 }
 
-.footerInner,
-.footerInner nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
+.footer .brand {
+  color: #fff;
+  font-size: 15px;
 }
 
-.footerInner {
+.footer .brand img {
+  width: 22px;
+  height: 22px;
+}
+
+.footerTop {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.footerAbout {
+  max-width: 340px;
+}
+
+.footerAbout p {
+  margin-top: 14px;
+  line-height: 1.6;
+}
+
+.footerCols {
+  display: flex;
+  gap: 64px;
+}
+
+.footerCols div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footerCols h3 {
+  margin: 0 0 2px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.footerInner a {
+  transition: color 0.15s ease;
 }
 
 .footerInner a:hover {
-  color: var(--color-navy);
+  color: #fff;
+}
+
+.footerBottom {
+  padding-top: 24px;
+  color: #8592ad;
+  font-size: 11px;
 }
 
 @media (width < 900px) {
@@ -665,8 +713,12 @@
     padding-inline: 10px;
   }
 
-  .footerInner {
-    flex-direction: column;
+  .footer {
+    padding: 48px 16px 24px;
+  }
+
+  .footerCols {
+    gap: 40px;
   }
 }
 

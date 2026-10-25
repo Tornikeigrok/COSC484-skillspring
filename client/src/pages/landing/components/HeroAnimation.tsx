@@ -110,20 +110,6 @@ function Illustration({ reducedMotion }: { reducedMotion: boolean }) {
           </AnimationBoundary>
         )}
       </div>
-      <figcaption className={styles.caption}>
-        <span>Learn. Build. Grow.</span>
-        {showAnimation && (
-          <button
-            type="button"
-            className={styles.control}
-            onClick={() => setPaused(!paused)}
-            aria-label={paused ? 'Play illustration' : 'Pause illustration'}
-          >
-            <span aria-hidden="true">{paused ? '▶' : 'Ⅱ'}</span>
-            {paused ? 'Play' : 'Pause'}
-          </button>
-        )}
-      </figcaption>
     </figure>
   );
 }

@@ -539,17 +539,13 @@
 /* Closing call to action */
 
 .ctaSection {
-  padding: 72px 24px;
-  background-color: var(--color-canvas);
+  padding: 96px 24px 104px;
+  background: linear-gradient(180deg, var(--color-surface) 0%, #e6e8fd 100%);
 }
 
 .cta {
   max-width: 1120px;
   margin-inline: auto;
-  padding: 48px 24px;
-  border: 1px solid #dcdcfb;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, #f1f0ff, #e9ecff);
   text-align: center;
 }
 
@@ -571,7 +567,8 @@
 
 .footer {
   padding: 20px 24px;
-  border-top: 1px solid var(--color-line);
+  border-top: 1px solid #d6d9f8;
+  background-color: #e6e8fd;
   color: var(--color-muted);
   font-size: 12px;
 }
@@ -642,9 +639,8 @@
   }
 
   .ctaSection {
-    padding: 48px 16px;
+    padding: 64px 16px 72px;
   }
-
   .timeline,
   .types,
   .faq {

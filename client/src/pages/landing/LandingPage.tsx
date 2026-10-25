@@ -46,6 +46,7 @@ export default function LandingPage() {
             <nav aria-label="Main" className={styles.navLinks}>
               <Link to="/tasks">Explore tasks</Link>
               <a href="#how-it-works">How it works</a>
+              <a href="#types">Topics</a>
               <a href="#safety">Safety</a>
               <a href="#faq">FAQ</a>
             </nav>
@@ -158,7 +159,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section className={cx(styles.section, styles.bandWhite)} aria-labelledby="types-heading">
+          <section className={cx(styles.section, styles.bandWhite)} id="types" aria-labelledby="types-heading">
             <div className={styles.wrap}>
               <Reveal className={styles.sectionHead}>
                 <span className={styles.eyebrow}>Topics to Choose From</span>
@@ -268,6 +269,7 @@ export default function LandingPage() {
             <nav aria-label="Footer">
               <Link to="/tasks">Explore tasks</Link>
               <a href="#how-it-works">How it works</a>
+              <a href="#types">Topics</a>
               <a href="#safety">Safety</a>
               <Link to="/login">Log in</Link>
               <Link to="/register?role=company">For companies</Link>

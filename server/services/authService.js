@@ -58,7 +58,7 @@ async function login(email, password, expectedRole) {
 
     const user = await User.findOne({ where: { email: cleanEmail } });
 
-    const passwordMatches = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
+    const passwordMatches = await bcrypt.compare(password, user?.password_hash ?? DUMMY_HASH);
 
     if (!user || !passwordMatches || user.role !== expectedRole) {
         throw new UnauthorizedError('Invalid email or password');

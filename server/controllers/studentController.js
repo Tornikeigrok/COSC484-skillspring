@@ -4,6 +4,12 @@ module.exports = {
     userProfile: async (input) => {
         return await studentService.studentProfile(input.userId);
     },
+    updateProfile: async (input) => {
+        return await studentService.updateProfile(input.userId, input.bio, input.githubUrl);
+    },
+    updatePassword: async (input) => {
+        return await studentService.updatePassword(input.userId, input.currentPassword, input.newPassword);
+    },
     getUniveristyMatches: async (input) => {
         return await studentService.getUniveristyMatches(input.uni);
     },

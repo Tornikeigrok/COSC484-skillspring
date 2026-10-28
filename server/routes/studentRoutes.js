@@ -14,6 +14,24 @@ router.get('/profile', createHandler(
     studentController.userProfile,
 ));
 
+router.patch('/update-profile', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        bio: req.body.bio,
+        githubUrl: req.body.githubUrl,
+    }),
+    studentController.updateProfile,
+));
+
+router.patch('/update-password', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        currentPassword: req.body.currentPassword,
+        newPassword: req.body.newPassword,
+    }),
+    studentController.updatePassword,
+));
+
 router.get('/verification-universities', createHandler(
     (req) => ({ uni: req.query.uni }),
     studentController.getUniveristyMatches,

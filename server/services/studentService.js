@@ -1,7 +1,9 @@
 const { User, Student, sequelize } = require('../models');
-const { BadRequestError, ConflictError } = require('../utils/httpExceptions');
+const { BadRequestError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
 const u = require('../us_universities.json');
-const { validateEmail } = require('../utils/authUtils');
+const { validateEmail, validatePassword } = require('../utils/authUtils');
+const bcrypt = require('bcrypt');
+const { validateOptionalText, validateOptionalUrl } = require('../utils/profileUtils');
 const redis = require('../utils/redisClient');
 const crypto = require('crypto');
 const { queueVerificationEmail } = require('../queues/emailQueue');
@@ -83,6 +85,38 @@ module.exports = {
 
         return { data: user };
     },
+    updateProfile: async (userId, bio, githubUrl) => {
+        const changes = {};
+        if (bio !== undefined) changes.bio = validateOptionalText(bio, 'Bio', 2000);
+        if (githubUrl !== undefined) changes.github_url = validateOptionalUrl(githubUrl, 'GitHub URL');
+
+        if (Object.keys(changes).length === 0) {
+            throw new BadRequestError('No changes provided');
+        }
+
+        await Student.update(changes, { where: { user_id: userId }});
+
+        return module.exports.studentProfile(userId);
+    },
+    updatePassword: async (userId, currentPassword, newPassword) => {
+        const cleanNewPassword = validatePassword(newPassword);
+
+        const user = await User.findByPk(userId);
+        const matches = user?.password_hash && typeof currentPassword === 'string'
+            && await bcrypt.compare(currentPassword, user.password_hash);
+        if (!matches) {
+            throw new UnauthorizedError('Current password is incorrect');
+        }
+
+        if (await bcrypt.compare(cleanNewPassword, user.password_hash)) {
+            throw new BadRequestError('New password must be different from your current password');
+        }
+
+        const hashNew = await bcrypt.hash(cleanNewPassword, 10);
+        await user.update({ password_hash: hashNew, password_updated_at: new Date() });
+
+        return { data: { password_updated: true } };
+    },
     getUniveristyMatches: async (uni) => {
         const q = (uni ?? '').trim().toLowerCase();
         if (q.length < 3) return { data: [] }
@@ -143,3 +177,5 @@ module.exports = {
         return await sendEmailVerif(userId, pending.email, pending.university, pending.gradYear, pending.bio);
     },
 }
+
+// Middleware that checks that each party is verified. But endpoints need to exist first so we can apply middleware to them

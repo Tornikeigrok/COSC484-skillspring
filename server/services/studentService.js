@@ -3,7 +3,7 @@ const { BadRequestError, ConflictError, UnauthorizedError } = require('../utils/
 const u = require('../us_universities.json');
 const { validateEmail, validatePassword } = require('../utils/authUtils');
 const bcrypt = require('bcrypt');
-const { validateOptionalText, validateOptionalUrl } = require('../utils/profileUtils');
+const { validateOptionalText, validateRequiredText, validateOptionalUrl } = require('../utils/profileUtils');
 const redis = require('../utils/redisClient');
 const crypto = require('crypto');
 const { queueVerificationEmail } = require('../queues/emailQueue');
@@ -51,6 +51,15 @@ async function validateVerificationCode(userId, code) {
     return { data: { verified: true } };
 }
 
+// Skills replace the whole list: send the full array each time, [] clears it
+function validateSkills(skills) {
+    if (!Array.isArray(skills) || skills.length > 30) {
+        throw new BadRequestError('Skills must be a list of up to 30 items');
+    }
+    const clean = skills.map((s) => validateRequiredText(s, 'Skill', 50));
+    return [...new Set(clean)];
+}
+
 async function sendEmailVerif(userId, cleanEmail, uniName, year, bio) {
     const code = crypto.randomInt(100000, 1000000).toString();
     const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
@@ -75,7 +84,7 @@ module.exports = {
             attributes: ['email', 'first_name', 'last_name', 'role', 'created_at'],
             include: {
                 model: Student,
-                attributes: ['university', 'graduation_year', 'verification_status', 'bio', 'github_url'],
+                attributes: ['university', 'graduation_year', 'verification_status', 'bio', 'github_url', 'skills'],
             },
         });
 
@@ -85,10 +94,11 @@ module.exports = {
 
         return { data: user };
     },
-    updateProfile: async (userId, bio, githubUrl) => {
+    updateProfile: async (userId, bio, githubUrl, skills) => {
         const changes = {};
         if (bio !== undefined) changes.bio = validateOptionalText(bio, 'Bio', 2000);
         if (githubUrl !== undefined) changes.github_url = validateOptionalUrl(githubUrl, 'GitHub URL');
+        if (skills !== undefined) changes.skills = validateSkills(skills);
 
         if (Object.keys(changes).length === 0) {
             throw new BadRequestError('No changes provided');

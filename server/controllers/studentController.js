@@ -5,7 +5,7 @@ module.exports = {
         return await studentService.studentProfile(input.userId);
     },
     updateProfile: async (input) => {
-        return await studentService.updateProfile(input.userId, input.bio, input.githubUrl);
+        return await studentService.updateProfile(input.userId, input.bio, input.githubUrl, input.skills);
     },
     updatePassword: async (input) => {
         return await studentService.updatePassword(input.userId, input.currentPassword, input.newPassword);

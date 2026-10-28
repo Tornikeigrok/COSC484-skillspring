@@ -19,6 +19,7 @@ router.patch('/update-profile', createHandler(
         userId: req.user.userId,
         bio: req.body.bio,
         githubUrl: req.body.githubUrl,
+        skills: req.body.skills,
     }),
     studentController.updateProfile,
 ));

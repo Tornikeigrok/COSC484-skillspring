@@ -10,7 +10,7 @@ import {
   StatusBadge,
   buttonClass,
 } from '../../components/ui';
-import { useFetchProfile } from '../dashboard/hooks/use-profile';
+import { useCurrentUser } from '../dashboard/hooks/use-profile';
 import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import links from '../../styles/links.module.css';
@@ -20,7 +20,7 @@ import { toOwnProfile } from './utils/own-profile';
 import styles from './ProfilePage.module.css';
 export default function ProfilePage() {
   const { id } = useParams();
-  const { data: me, isPending } = useFetchProfile();
+  const { data: me, isPending } = useCurrentUser();
   const own = !id;
   if (own && isPending) return <Loading />;
   const { user, profile, experiences } = own && me ? toOwnProfile(me) : sampleProfile;
@@ -123,12 +123,12 @@ export default function ProfilePage() {
             {student && profile.graduation_year && <p>Class of {profile.graduation_year}</p>}
             <hr />
              <p className={text.mutedSmall}>
-               {me?.Student?.verification_status === 'unverified' ? `
+               {profile.verification_status === 'unverified' ? `
                Identity verification is reviewed separately from project approval. A completed
                project verifies the work, not the account holder’s identity. You must verify yur account before starting the work.
                ` : 'Your profile hass been successfuly verified. You can go ahead and start gaining experience.'}
              </p>
-            {own && me?.Student?.verification_status !== 'verified' && (
+            {own && me?.role === 'student' && profile.verification_status !== 'verified' && (
               <Link className={links.textLink} to="/verification">
                 Manage verification →
               </Link>

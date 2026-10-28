@@ -6,7 +6,10 @@ import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import notice from '../../styles/notice.module.css';
 import styles from './VerificationCodePage.module.css';
-import { useValidateCode } from './hooks';
+import { useValidateCode, useValidateCompanyCode } from './hooks';
+import { useCurrentUser } from '../dashboard/hooks/use-profile';
+
+
 
 const LENGTH = 6;
 
@@ -40,11 +43,18 @@ export const VerificationCodePage = () => {
   }
 
  
-  const { mutate: validateCode, isPending, isSuccess, isError, error } = useValidateCode();
-  
+  const studentValidation = useValidateCode();
+  const companyValidation = useValidateCompanyCode();
+  const { data: user } = useCurrentUser();
+  const student = user?.role === 'student';
+  // the mutation for this user's role; everything below reads from it
+  const validation = student ? studentValidation : companyValidation;
+
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    validateCode(code);
+    // role unknown until the profile loads; don't guess which endpoint to hit
+    if (!user) return;
+    validation.mutate(code);
   }
 
   return (
@@ -52,9 +62,9 @@ export const VerificationCodePage = () => {
       <PageHeading
         eyebrow="BUILDING TRUST"
         title="Check your email"
-        description="We sent a 6-digit code to your university email. Enter it below to finish verification."
+        description={`We sent a 6-digit code to your ${student ? 'university' : 'work'} email. Enter it below to finish verification.`}
       />
-      {isSuccess ?
+      {validation.isSuccess ?
       <Card className={styles.card} role="status">
         <div className={cx(styles.icon, styles.iconSuccess)} aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
@@ -63,10 +73,12 @@ export const VerificationCodePage = () => {
         </div>
         <h2 className={styles.successTitle}>You're verified</h2>
         <p className={styles.successText}>
-          Your university email is confirmed. You can now apply to tasks from companies on SkillSpring.
+          {student
+            ? 'Your university email is confirmed. You can now apply to tasks from companies on SkillSpring.'
+            : 'Your work email is confirmed. You can now post tasks for students on SkillSpring.'}
         </p>
-        <Link className={buttonClass('primary', styles.successAction)} to="/tasks">
-          Explore tasks
+        <Link className={buttonClass('primary', styles.successAction)} to={student ? '/tasks' : '/business/tasks/new'}>
+          {student ? 'Explore tasks' : 'Post a task'}
         </Link>
       </Card>
       :
@@ -77,7 +89,13 @@ export const VerificationCodePage = () => {
             <path d="m3 7 9 6 9-6" />
           </svg>
         </div>
-        <form className={styles.form} onSubmit={submit} noValidate>
+        <form
+          className={styles.form}
+          onSubmit={submit}
+          // editing the code clears the last "wrong code" error
+          onChange={() => validation.isError && validation.reset()}
+          noValidate
+        >
           <fieldset className={styles.fieldset}>
             <legend className={styles.legend}>Verification code</legend>
             <div className={styles.digits}>
@@ -108,10 +126,10 @@ export const VerificationCodePage = () => {
               ))}
             </div>
           </fieldset>
-          <Button type="submit" className={styles.submit} disabled={code.length < LENGTH || isPending}>
-            {isPending ? 'Verifying code...' : 'Verify code'}
+          <Button type="submit" className={styles.submit} disabled={code.length < LENGTH || validation.isPending || !user}>
+            {validation.isPending ? 'Verifying code...' : 'Verify code'}
           </Button>
-          {isError && <p className={cx(notice.notice, notice.error)}>{error?.message}</p>}
+          {validation.isError && <p className={cx(notice.notice, notice.error)} role="alert">{validation.error.message}</p>}
           <p className={styles.resend}>
             Didn't get it? Check your spam folder or{' '}
             <button type="button" className={styles.link}>

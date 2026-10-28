@@ -1,7 +1,7 @@
 import { Link, NavLink, useParams } from 'react-router-dom';
 import { fullName } from '../../lib/types';
 import { Card, DateLabel, PageHeading, StatusBadge, buttonClass } from '../../components/ui';
-import { useFetchProfile } from '../dashboard/hooks/use-profile';
+import { useCurrentUser } from '../dashboard/hooks/use-profile';
 import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import links from '../../styles/links.module.css';
@@ -25,7 +25,7 @@ export default function AssignmentPage({
   view?: 'overview' | 'agreement' | 'submit' | 'review' | 'validation';
 }) {
   const { id } = useParams();
-  const { data: user } = useFetchProfile();
+  const { data: user } = useCurrentUser();
   const detail = sampleAssignmentDetail;
   const { assignment, agreement } = detail;
   const student = user?.role === 'student';

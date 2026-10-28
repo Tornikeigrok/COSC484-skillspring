@@ -24,7 +24,7 @@ export const registerStudentSchema = loginSchema.extend({
 export type RegisterStudentFormData = z.infer<typeof registerStudentSchema>;
 
 export const registerCompanySchema = registerStudentSchema.extend({
-  company_name: z
+  companyName: z
     .string()
     .min(1, 'company name is required')
     .max(160, 'company name must be at most 160 characters'),

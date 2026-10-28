@@ -12,14 +12,15 @@ import {
 } from '../../components/ui';
 import { toFieldErrors, withoutError } from '../../utils/form-errors';
 import type { FieldErrors } from '../../utils/form-errors';
-import { useFetchProfile } from '../dashboard/hooks/use-profile';
+import { useCurrentUser } from '../dashboard/hooks/use-profile';
 import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import notice from '../../styles/notice.module.css';
 import { verificationSchema } from './utils/verification-validations';
-import { useSendVerificationEmail, useUniversityMatches } from './hooks';
+import { useSendVerificationEmail, useUniversityMatches, useSendCompanyVerifEmail } from './hooks';
 import { useDebounce } from './utils/verification-validations';
 import styles from './VerificationPage.module.css';
+import { CompanyVerificationForm } from './CompanyVerificationForm';
 import { Dropdown, DropdownMenu, DropdownRadioGroup, DropdownRadioItem, DropdownTrigger } from '@/ui/radix-dropdown';
 import { Navigate, useNavigate } from 'react-router-dom';
 
@@ -27,8 +28,8 @@ const GRAD_YEARS = ['2026', '2027', '2028', '2029', '2030'];
 
 export default function VerificationPage() {
   const navigate = useNavigate();
-  const { data: user } = useFetchProfile();
-  const status = user?.Student?.verification_status ?? 'unverified';
+  const { data: user } = useCurrentUser();
+  const status = (user?.role === 'student' ? user.Student : user?.Company)?.verification_status ?? 'unverified';
   const [errors, setErrors] = useState<FieldErrors>({});
   const sendVerification = useSendVerificationEmail();
 
@@ -71,22 +72,42 @@ export default function VerificationPage() {
     setActive(-1);
   }
 
+  // Company Verification func
+  const { mutate: companyVerifEmail, isPending: companyVerifEmailPending, error: companyVerifEmailError, isError: companyVerifEmailErrorExists, reset: resetCompanyVerif } = useSendCompanyVerifEmail();
 
-  // Verification is one-time: verified students never come back here.
-  if (status === 'verified') return <Navigate to="/student" replace />;
+  const company = user?.role === 'company';
+
+  // Verification is one-time: verified users never come back here.
+  if (status === 'verified') return <Navigate to={company ? '/business' : '/student'} replace />;
 
   return (
     <div className={layout.narrowPage}>
       <PageHeading
         eyebrow="BUILDING TRUST"
-        title={user?.role === 'company' ? 'Business verification' : 'Student verification'}
-        description="You must verify your role before being taking on the tasks."
+        title={company ? 'Business verification' : 'Student verification'}
+        description={
+          company
+            ? 'Verify your company before posting tasks.'
+            : 'You must verify your role before being taking on the tasks.'
+        }
       />
       <Card>
         <div className={layout.headerRow}>
           <h2>Verification status</h2>
           <StatusBadge status={status} />
         </div>
+        {company ? (
+          <CompanyVerificationForm
+            firstName={user.first_name}
+            lastName={user.last_name}
+            onSubmit={(data) => { companyVerifEmail({ workEmail: data.workEmail, website: data.website }, 
+              { onSuccess: () => navigate('/verification-code')})}}
+            serverError={companyVerifEmailError?.message}
+            isPending={companyVerifEmailPending}
+            isError={companyVerifEmailErrorExists}
+            onEdit={resetCompanyVerif}
+          />
+        ) : (
           <form
             className={layout.formStack}
             onSubmit={submit}
@@ -221,6 +242,7 @@ export default function VerificationPage() {
               Request verification
             </Button>
           </form>
+        )}
       </Card>
     </div>
   );

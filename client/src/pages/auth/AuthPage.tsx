@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import type { Role } from '../../lib/types';
 import { Brand, Button, Field, FieldError, Input } from '../../components/ui';
@@ -7,51 +6,84 @@ import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import links from '../../styles/links.module.css';
 import text from '../../styles/text.module.css';
-import { toFieldErrors, withoutError } from '../../utils/form-errors';
-import type { FieldErrors } from '../../utils/form-errors';
 import { AUTH_POINTS } from './constants/auth-points';
 import { ROLES, ROLE_LABELS } from './constants/roles';
-import { useRegister } from './hooks/use-auth-hooks';
+import { useCompanyRegister, useRegister } from './hooks/use-auth-hooks';
 import {
   loginSchema,
   registerCompanySchema,
   registerStudentSchema,
 } from './utils/auth-validations';
-import type { RegisterStudentFormData } from './utils/auth-validations';
+import type { RegisterCompanyFormData, RegisterStudentFormData } from './utils/auth-validations';
+import { useForm } from 'react-hook-form';
+import type { FieldErrors } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import styles from './AuthPage.module.css';
+
 export default function AuthPage({ register = false }: { register?: boolean }) {
   const [params] = useSearchParams();
   const [role, setRole] = useState<Role>(params.get('role') === 'company' ? 'company' : 'student');
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [serverError, setServerError] = useState('');
   const navigate = useNavigate();
-  const registerStudent = useRegister();
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.currentTarget));
-    const schema = !register
-      ? loginSchema
-      : role === 'company'
-        ? registerCompanySchema
-        : registerStudentSchema;
-    const result = schema.safeParse(data);
-    if (!result.success) {
-      setErrors(toFieldErrors(result.error));
-      return;
-    }
-    setErrors({});
-    setServerError('');
-    if (register && role === 'student') {
-      const { first_name, last_name, email, password } = result.data as RegisterStudentFormData;
-      registerStudent.mutate(
-        { firstName: first_name, lastName: last_name, email, password },
-        {
-          onSuccess: () => navigate('/student'),
-          onError: (error) => setServerError(error.message),
-        },
-      );
-    }
+
+  // Company registration part
+  const companyMutation = useCompanyRegister();
+
+  const { register: companyRegister, handleSubmit: companyRegisterHandle, formState: { errors: companyRegErrors }} = useForm({
+     resolver: zodResolver(registerCompanySchema),
+  });
+
+  const handleCompanyReg = (data: RegisterCompanyFormData) => {
+    companyMutation.mutate(
+      {
+        firstName: data.first_name,
+        lastName: data.last_name,
+        email: data.email,
+        password: data.password,
+        companyName: data.companyName,
+      },
+      { onSuccess: () => navigate('/business') },
+    );
   }
+
+  // Student registration part
+  const studentMutation = useRegister();
+
+  const { register: studentRegister, handleSubmit: studentRegisterHandle, formState: { errors: studentRegErrors }} = useForm({
+     resolver: zodResolver(registerStudentSchema),
+  });
+
+  const handleStudentReg = (data: RegisterStudentFormData) => {
+    studentMutation.mutate(
+      {
+        firstName: data.first_name,
+        lastName: data.last_name,
+        email: data.email,
+        password: data.password,
+      },
+      { onSuccess: () => navigate('/student') },
+    );
+  }
+
+  const { register: loginRegister, handleSubmit: loginHandle, formState: { errors: loginErrors }} = useForm({
+     resolver: zodResolver(loginSchema),
+  });
+
+  const company = register && role === 'company';
+  const onSubmit = !register
+    ? loginHandle(() => {})
+    : company
+      ? companyRegisterHandle(handleCompanyReg)
+      : studentRegisterHandle(handleStudentReg);
+  const field = (name: 'first_name' | 'last_name' | 'email' | 'password') =>
+    !register
+      ? loginRegister(name as 'email' | 'password')
+      : company
+        ? companyRegister(name)
+        : studentRegister(name);
+  // company errors are a superset of the other two, so one type covers every field
+  const errors = (!register ? loginErrors : company ? companyRegErrors : studentRegErrors) as FieldErrors<RegisterCompanyFormData>;
+  const mutation = company ? companyMutation : studentMutation;
+
   return (
     <div className={styles.page}>
       <aside className={styles.aside}>
@@ -121,47 +153,45 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
             </>
           )}
           <form
-            onSubmit={submit}
-            onChange={(e) => {
-              setErrors(withoutError(errors, e.target));
-              setServerError('');
-            }}
+            onSubmit={onSubmit}
+            // a new keystroke clears the last server error
+            onChange={() => mutation.reset()}
             noValidate
             className={layout.formStack}
           >
             {register && (
               <div className={styles.nameFields}>
-                <Field label="First name" id="first_name" error={errors.first_name}>
-                  <Input id="first_name" name="first_name" autoComplete="given-name" />
+                <Field label="First name" id="first_name" error={errors.first_name?.message}>
+                  <Input {...field('first_name')} id="first_name" autoComplete="given-name" />
                 </Field>
-                <Field label="Last name" id="last_name" error={errors.last_name}>
-                  <Input id="last_name" name="last_name" autoComplete="family-name" />
+                <Field label="Last name" id="last_name" error={errors.last_name?.message}>
+                  <Input {...field('last_name')} id="last_name" autoComplete="family-name" />
                 </Field>
               </div>
             )}
-            {register && role === 'company' && (
-              <Field label="Company name" id="company_name" error={errors.company_name}>
-                <Input id="company_name" name="company_name" autoComplete="organization" />
+            {company && (
+              <Field label="Company name" id="company_name" error={errors.companyName?.message}>
+                <Input {...companyRegister('companyName')} id="company_name" autoComplete="organization" />
               </Field>
             )}
-            <Field label="Email address" id="email" error={errors.email}>
-              <Input id="email" name="email" type="email" autoComplete="email" />
+            <Field label="Email address" id="email" error={errors.email?.message}>
+              <Input {...field('email')} id="email" type="email" autoComplete="email" />
             </Field>
             <Field
               label="Password"
               id="password"
-              error={errors.password}
+              error={errors.password?.message}
             >
               <Input
+                {...field('password')}
                 id="password"
-                name="password"
                 type="password"
                 autoComplete={register ? 'new-password' : 'current-password'}
               />
             </Field>
-            <FieldError message={serverError} />
-            <Button type="submit" busy={registerStudent.isPending}>
-              {registerStudent.isPending ? 'Creating account...' : register ? 'Create account' : 'Log in'} <span aria-hidden="true">→</span>
+            <FieldError message={register ? mutation.error?.message : undefined} />
+            <Button type="submit" busy={mutation.isPending}>
+              {mutation.isPending ? 'Creating account...' : register ? 'Create account' : 'Log in'} <span aria-hidden="true">→</span>
             </Button>
           </form>
           <p className={styles.switch}>

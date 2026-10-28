@@ -16,6 +16,24 @@ export const verificationSchema = z.object({
 });
 export type VerificationFormData = z.infer<typeof verificationSchema>;
 
+// Format checks only; domain matching and free-provider rules live on the server
+export const companyVerificationSchema = z.object({
+  website: z
+    .string()
+    .trim()
+    .min(1, 'company website is required')
+    .max(300, 'website must be at most 300 characters')
+    .refine((value) => /^https?:\/\//i.test(value) && URL.canParse(value), {
+      message: 'enter a valid URL starting with http:// or https://',
+    }),
+  workEmail: z
+    .string()
+    .trim()
+    .max(254, 'email must be at most 254 characters')
+    .pipe(z.email('enter a valid work email')),
+});
+export type CompanyVerificationFormData = z.infer<typeof companyVerificationSchema>;
+
 // Debouncer for university field (verification)
 export function useDebounce(value: string, delay = 300) {
   const [debounce, setDebounce] = useState(value);

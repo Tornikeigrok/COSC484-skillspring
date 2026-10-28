@@ -4,21 +4,23 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { Role } from '../lib/types';
 import { Brand, Button, Loading, buttonClass } from '../components/ui';
 import { cx } from '../utils/cx';
-import { useFetchProfile } from '../pages/dashboard/hooks/use-profile';
+import { useCurrentUser } from '../pages/dashboard/hooks/use-profile';
+import { useAuthenticateUser } from '../auth/use-authenticate-user';
 import { BUSINESS_LINKS, STUDENT_LINKS } from '../constants/navigation';
 import { useLogout } from '../pages/auth/hooks/use-auth-hooks';
 import linkStyles from '../styles/links.module.css';
 import styles from './AppLayout.module.css';
 export function RequireAuth({ role }: { role?: Role }) {
-  const { data: user, isPending } = useFetchProfile();
+  // role comes from authenticate-user, so this works for both students and companies
+  const { data: auth, isPending } = useAuthenticateUser();
   if (isPending) return <Loading />;
-  if (!user) return <Navigate to="/" replace />;
-  if (role && user.role !== role)
-    return <Navigate to={user.role === 'student' ? '/student' : '/business'} replace />;
+  if (!auth) return <Navigate to="/" replace />;
+  if (role && auth.role !== role)
+    return <Navigate to={auth.role === 'student' ? '/student' : '/business'} replace />;
   return <Outlet />;
 }
 export function AppLayout() {
-  const { data: user, isPending } = useFetchProfile();
+  const { data: user, isPending } = useCurrentUser();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const logout = useLogout();
@@ -53,7 +55,7 @@ export function AppLayout() {
           ))}
         </nav>
         <div className={styles.sidebarFooter}>
-          {user.Student?.verification_status !== 'verified' && (
+          {(user.role === 'student' ? user.Student : user.Company).verification_status !== 'verified' && (
             <NavLink to="/verification" onClick={() => setMenu(false)} className={navLinkClass}>
               Identity verification
             </NavLink>

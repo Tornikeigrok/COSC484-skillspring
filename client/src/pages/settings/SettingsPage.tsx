@@ -1,271 +1,243 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
-import {
-  Button,
-  Card,
-  ConfirmDialog,
-  Field,
-  Input,
-  Loading,
-  PageHeading,
-  Textarea,
-} from '../../components/ui';
-import { toFieldErrors, withoutError } from '../../utils/form-errors';
-import type { FieldErrors } from '../../utils/form-errors';
+import { Badge, Button, Card, Field, FieldError, Input, Loading, PageHeading, Textarea } from '../../components/ui';
 import { useFetchProfile } from '../dashboard/hooks/use-profile';
-import { toOwnProfile } from '../profile/utils/own-profile';
-import { cx } from '../../utils/cx';
-import layout from '../../styles/layout.module.css';
-import notice from '../../styles/notice.module.css';
-import text from '../../styles/text.module.css';
+import styles from './SettingsPage.module.css';
+import { studentProfileSchema, changePasswordSchema } from './utils/settings-validations';
+import type { StudentProfileFormData, ChangePasswordFormData } from './utils/settings-validations';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useUpdateProfile, useUpdatePassword } from './hooks';
+import { parseSkills } from '../../utils/parse-skills';
+import { skills } from '../settings/constants/settings';
 import {
-  changePasswordSchema,
-  companyProfileSchema,
-  deleteAccountSchema,
-  studentProfileSchema,
-} from './utils/settings-validations';
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/ui/radix-modal';
+import { Dropdown, DropdownMenu, DropdownRadioGroup, DropdownRadioItem, DropdownTrigger } from '@/ui/radix-dropdown';
+
+
+
 export default function SettingsPage() {
-  const { data: me } = useFetchProfile();
-  const [saved, setSaved] = useState(false);
-  const [passwordSaved, setPasswordSaved] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [profileErrors, setProfileErrors] = useState<FieldErrors>({});
-  const [passwordErrors, setPasswordErrors] = useState<FieldErrors>({});
-  const [deleteErrors, setDeleteErrors] = useState<FieldErrors>({});
-  if (!me) return <Loading />;
-  const { user, profile } = toOwnProfile(me);
-  const verified = profile.verification_status === 'verified';
-  function saveProfile(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSaved(false);
-    const data = Object.fromEntries(new FormData(event.currentTarget));
-    const schema = user.role === 'student' ? studentProfileSchema : companyProfileSchema;
-    const result = schema.safeParse(data);
-    if (!result.success) {
-      setProfileErrors(toFieldErrors(result.error));
-      return;
+
+  const { data: user } = useFetchProfile();
+
+  const { register, handleSubmit, getValues, setValue, resetField, control, formState: { isDirty } } = useForm({
+    resolver: zodResolver(studentProfileSchema),
+    values: user && {
+      bio: user.Student?.bio ?? '',
+      github_url: user.Student?.github_url ?? '',
+      skills: '', // only newly picked skills; saved ones render as badges below
+    },
+  });
+  const pickedSkills = useWatch({ control, name: 'skills' });
+
+  /* Update password stuff */
+  const [updatePasswordModal, setUpdatePasswordModal] = useState<boolean>(false);
+  const { mutate: updatePasswordMutate, isPending: passwordPending, error: passMutateError, reset: resetPasswordMutation } = useUpdatePassword();
+  const { register: updatePassword, handleSubmit: handleUpdatePassword, reset: resetPasswordForm, formState: { errors: passwordUpdateError }} = useForm({
+    resolver: zodResolver(changePasswordSchema),
+  });
+
+  // closing the dialog (cancel, esc, success) wipes typed passwords and any server error
+  const onPasswordDialogChange = (open: boolean) => {
+    setUpdatePasswordModal(open);
+    if (!open) {
+      resetPasswordForm();
+      resetPasswordMutation();
     }
-    setProfileErrors({});
-    setSaved(true);
   }
-  function changePassword(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setPasswordSaved(false);
-    const form = event.currentTarget;
-    const result = changePasswordSchema.safeParse(Object.fromEntries(new FormData(form)));
-    if (!result.success) {
-      setPasswordErrors(toFieldErrors(result.error));
-      return;
-    }
-    setPasswordErrors({});
-    setPasswordSaved(true);
-    form.reset();
+
+  const onPasswordUpdate = (data: ChangePasswordFormData) => {
+    updatePasswordMutate({ currentPassword: data.current_password, newPassword: data.password },
+      { onSuccess: () => onPasswordDialogChange(false) });
   }
-  function deleteAccount(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const result = deleteAccountSchema.safeParse(
-      Object.fromEntries(new FormData(event.currentTarget)),
+
+
+  /* Update profile stuff */
+  const { mutate: updateProfile, isPending } = useUpdateProfile();
+
+  const onSubmit = (data: StudentProfileFormData) => {
+    const skills = [...new Set([...(user?.Student?.skills ?? []), ...data.skills])];
+    updateProfile(
+      { bio: data.bio, githubUrl: data.github_url, skills },
+      { onSuccess: () => resetField('skills') },
     );
-    if (!result.success) {
-      setDeleteErrors(toFieldErrors(result.error));
-      return;
-    }
-    setDeleteErrors({});
   }
-  const student = user.role === 'student';
+
+  const addSkill = (skill: string) => {
+    if (skill === 'none') return setValue('skills', '', { shouldDirty: true });
+    const picked = parseSkills(getValues('skills') ?? '');
+    if (picked.includes(skill)) return;
+    setValue('skills', [...picked, skill].join(', '), { shouldDirty: true });
+  }
+
+  if (!user) return <Loading />;
+
+  const { Student: profile } = user;
+  const verified = profile.verification_status === 'verified';
+  const initials = `${user.first_name[0] ?? ''}${user.last_name[0] ?? ''}`.toUpperCase();
   return (
-    <div className={layout.narrowPage}>
+    <div className={styles.page}>
       <PageHeading
-        eyebrow="MAKE IT YOURS"
-        title="Account settings"
-        description="Keep your profile current and your account secure."
+        eyebrow="Account"
+        title="Settings"
+        description="Manage how you appear to companies and keep your account secure."
       />
-      <div className={layout.stack}>
-        <Card>
-          <h2>Your profile</h2>
-          <p className={text.mutedSmall}>
-            Signed in as {user.email}. Account role: {student ? 'Student' : 'Business'}.
-          </p>
-          <form
-            className={layout.formStack}
-            onSubmit={saveProfile}
-            onChange={(e) => setProfileErrors(withoutError(profileErrors, e.target))}
-            noValidate
-          >
-            {saved && (
-              <p className={cx(notice.notice, notice.success)} role="status">
-                Profile saved.
+
+      <section className={styles.section}>
+        <header className={styles.sectionIntro}>
+          <h2>Profile</h2>
+          <p>This is what companies see when you send a proposal.</p>
+        </header>
+
+        <Card className={styles.panel}>
+          <div className={styles.identity}>
+            <span className={styles.avatar} aria-hidden="true">
+              {initials}
+            </span>
+            <div className={styles.identityText}>
+              <p className={styles.name}>
+                {user.first_name} {user.last_name}
               </p>
-            )}
-            <div className={layout.fieldGrid}>
-              <Field label="First name" id="first_name" error={profileErrors.first_name}>
-                <Input id="first_name" name="first_name" defaultValue={user.first_name} />
-              </Field>
-              <Field label="Last name" id="last_name" error={profileErrors.last_name}>
-                <Input id="last_name" name="last_name" defaultValue={user.last_name} />
-              </Field>
+              <p className={styles.email}>{user.email}</p>
             </div>
-            {student ? (
-              <>
-                <Field label="About you" id="bio" error={profileErrors.bio}>
-                  <Textarea id="bio" name="bio" defaultValue={profile.bio} />
-                </Field>
-                <div className={layout.fieldGrid}>
-                  <Field
-                    label="University"
-                    id="university"
-                    error={profileErrors.university}
-                  >
-                    <Input
-                      id="university"
-                      name="university"
-                      defaultValue={profile.university}
-                      readOnly={verified}
-                    />
-                  </Field>
-                  <Field
-                    label="Graduation year"
-                    id="graduation_year"
-                    error={profileErrors.graduation_year}
-                  >
-                    <Input
-                      id="graduation_year"
-                      name="graduation_year"
-                      type="number"
-                      defaultValue={profile.graduation_year}
-                      readOnly={verified}
-                    />
-                  </Field>
-                </div>
-                <Field label="GitHub URL" id="github_url" error={profileErrors.github_url}>
-                  <Input
-                    id="github_url"
-                    name="github_url"
-                    type="url"
-                    defaultValue={profile.github_url}
-                    placeholder="https://github.com/yourname"
-                  />
-                </Field>
-                <Field
-                  label="Skills"
-                  id="skills"
-                  error={profileErrors.skills}
-                  hint="Comma separated, up to 15."
-                >
-                  <Input id="skills" name="skills" defaultValue={profile.skills?.join(', ')} />
-                </Field>
-              </>
-            ) : (
-              <>
-                <Field label="Company name" id="name" error={profileErrors.name}>
-                  <Input id="name" name="name" defaultValue={profile.name} />
-                </Field>
-                <Field
-                  label="Company description"
-                  id="description"
-                  error={profileErrors.description}
-                >
-                  <Textarea
-                    id="description"
-                    name="description"
-                    defaultValue={profile.description}
-                  />
-                </Field>
-                <Field label="Company website" id="website" error={profileErrors.website}>
-                  <Input
-                    id="website"
-                    name="website"
-                    type="url"
-                    defaultValue={profile.website}
-                    placeholder="https://example.com"
-                  />
-                </Field>
-              </>
-            )}
-            <Button type="submit">Save profile</Button>
-          </form>
-        </Card>
-        <Card>
-          <h2>Change password</h2>
-          <p className={text.mutedSmall}>Changing your password signs out your other sessions.</p>
-          <form
-            className={layout.formStack}
-            onSubmit={changePassword}
-            onChange={(e) => setPasswordErrors(withoutError(passwordErrors, e.target))}
-            noValidate
-          >
-            {passwordSaved && (
-              <p className={cx(notice.notice, notice.success)} role="status">
-                Password updated. Other sessions were signed out.
-              </p>
-            )}
-            <Field
-              label="Current password"
-              id="current_password"
-              error={passwordErrors.current_password}
-            >
-              <Input
-                id="current_password"
-                name="current_password"
-                type="password"
-                autoComplete="current-password"
-              />
-            </Field>
-            <Field label="New password" id="new_password" error={passwordErrors.password}>
-              <Input
-                id="new_password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-              />
-            </Field>
-            <Button variant="secondary" type="submit">
-              Update password
-            </Button>
-          </form>
-        </Card>
-        <Card>
-          <h2>Delete account</h2>
-          <p className={text.muted}>
-            Your login and profile details will be removed. Assignment records, submissions,
-            reviews, and approved experience remain for project history. Resolve active assignments
-            first.
-          </p>
-          <ConfirmDialog
-            open={deleteOpen}
-            onOpenChange={setDeleteOpen}
-            trigger={<Button variant="danger">Delete account</Button>}
-            title="Delete your SkillSpring account?"
-            description="This revokes all sessions and anonymizes your profile. Project history is retained. This cannot be undone from the app."
-          >
-            <form
-              className={layout.formStack}
-              onSubmit={deleteAccount}
-              onChange={(e) => setDeleteErrors(withoutError(deleteErrors, e.target))}
-              noValidate
-            >
-              <Field label="Password" id="delete_password" error={deleteErrors.password}>
-                <Input
-                  id="delete_password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
+            <Badge tone={verified ? 'success' : 'neutral'}>{verified ? 'Verified' : 'Unverified'}</Badge>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <div className={styles.body}>
+              <Field      
+                label="Bio"
+                id="bio"
+                hint="A few sentences about what you build. Max 2,000 characters."
+              >
+                <Textarea
+                  {...register('bio')}
+                  id="bio"
+                  name="bio"
+                  rows={4}
+                  defaultValue={profile.bio ?? ''}
+                  placeholder="Frontend developer who loves clean, accessible UI…"
                 />
               </Field>
-              <Field
-                label="Type DELETE to confirm"
-                id="confirmation"
-                error={deleteErrors.confirmation}
-              >
-                <Input id="confirmation" name="confirmation" />
+              <Field label="GitHub" id="github_url">
+                <Input
+                  {...register('github_url')}
+                  id="github_url"
+                  name="github_url"
+                  type="url"
+                  defaultValue={profile.github_url ?? ''}
+                  placeholder="https://github.com/yourname"
+                />
               </Field>
-              <Button type="submit" variant="danger">
-                Permanently delete account
-              </Button>
-            </form>
-          </ConfirmDialog>
+              <Field label="Skills" id="skills" hint="Pick skills from the list, then save.">
+                <input type="hidden" {...register('skills')} />
+                <Dropdown>
+                  <DropdownTrigger id="skills">{pickedSkills || 'Add skills'}</DropdownTrigger>
+                <DropdownMenu>
+                  {/* value stays '' so nothing shows as checked; we only use the select event */}
+                  <DropdownRadioGroup value="" onValueChange={addSkill}>
+                    <DropdownRadioItem value='none'>No skills</DropdownRadioItem>
+                    {skills.map((v) => (
+                      <DropdownRadioItem key={v} value={v}>
+                        {v}
+                      </DropdownRadioItem>
+                    ))}
+                  </DropdownRadioGroup>
+                </DropdownMenu>
+                </Dropdown>
+                {profile.skills?.length > 0 && (
+                  <div className={styles.skills}>
+                    {profile.skills.map((skill: string) => <Badge key={skill}>{skill}</Badge>)}
+                  </div>
+                )}
+              </Field>
+            </div>
+
+            <footer className={styles.footer}>
+              <p>Changes show on your public profile.</p>
+              <Button disabled={!isDirty} type="submit">{isPending ? 'Saving changes...' : 'Save changes'}</Button>
+            </footer>
+          </form>
         </Card>
-      </div>
+      </section>
+
+      <section className={styles.section}>
+        <header className={styles.sectionIntro}>
+          <h2>Security</h2>
+          <p>Use a strong password you don't use anywhere else.</p>
+        </header>
+
+        <Card className={styles.panel}>
+          <div className={styles.summary}>
+              <span className={styles.summaryIcon} aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="4" y="11" width="16" height="10" rx="2" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                </svg>
+              </span>
+              <span className={styles.summaryText}>
+                <span className={styles.summaryTitle}>Password</span>
+                <span className={styles.summaryMeta}>••••••••••</span>
+              </span>
+            <Dialog open={updatePasswordModal} onOpenChange={onPasswordDialogChange}>
+              <DialogTrigger className={styles.summaryAction}>Change</DialogTrigger>
+              <DialogContent>
+                <DialogTitle>Change password</DialogTitle>
+                <DialogDescription>
+                  Enter your current password, then choose a new one.
+                </DialogDescription>
+
+                <form onSubmit={handleUpdatePassword(onPasswordUpdate)} noValidate>
+                  <div className={styles.dialogBody}>
+                    <Field label="Current password" id="current_password" error={passwordUpdateError.current_password?.message}>
+                      <Input
+                        {...updatePassword('current_password', { onChange: () => resetPasswordMutation() })}
+                        id="current_password"
+                        name="current_password"
+                        type="password"
+                        autoComplete="current-password"
+                      />
+                    </Field>
+                    <Field label="New password" id="password" error={passwordUpdateError.password?.message}>
+                      <Input
+                        {...updatePassword('password', { onChange: () => resetPasswordMutation() })}
+                        id="password"
+                        name="password"
+                        type="password"
+                        autoComplete="new-password"
+                      />
+                    </Field>
+                    {/* server errors aren't always about the current password, so show them for the whole form */}
+                    <FieldError id="password-form-error" message={passMutateError?.message} />
+                  </div>
+                  <footer className={styles.dialogFooter}>
+                    <DialogClose asChild>
+                      <Button type="button" variant="ghost">
+                        Cancel
+                      </Button>
+                    </DialogClose>
+                    <Button disabled={passwordPending} type="submit">{passwordPending ? 'Updating...' : 'Update password'}</Button>
+                  </footer>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </Card>
+      </section>
     </div>
   );
 }

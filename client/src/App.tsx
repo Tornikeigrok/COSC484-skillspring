@@ -7,6 +7,8 @@ import { AppLayout, RequireAuth, TaskLayout } from './layouts/AppLayout';
 import { Brand, Button, Loading, buttonClass } from './components/ui';
 import styles from './App.module.css';
 import { AuthProtection } from '@/auth/components/auth-protection';
+import { Toaster } from 'sonner';
+
 
 /* Must be lazy loaded until they are needed.  */
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
@@ -49,6 +51,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { failed: bool
 export default function App() {
   return (
     <AppErrorBoundary>
+      <Toaster position='bottom-right' richColors/>
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -77,7 +80,10 @@ export default function App() {
                   element={<AssignmentPage view="validation" />}
                 />
                 <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/settings" element={<SettingsPage />} />
+                {/* settings is student-only for now; companies have no Student profile */}
+                <Route element={<RequireAuth role="student" />}>
+                  <Route path="/settings" element={<SettingsPage />} />
+                </Route>
                 <Route path="/verification" element={<VerificationPage />} />
                 <Route path='/verification-code' element={<VerificationCodePage />} />
               </Route>

@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
+    "@hookform/resolvers": "^5.9.2",
     "@lottiefiles/dotlottie-react": "0.20.0",
     "@lottiefiles/dotlottie-web": "0.81.0",
     "@radix-ui/react-dialog": "^1.1.23",
@@ -26,7 +27,9 @@
     "motion": "^14.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.91.0",
     "react-router-dom": "^7.18.4",
+    "sonner": "^2.0.8",
     "tailwindcss": "^4.3.3",
     "zod": "^4.6.5"
   },

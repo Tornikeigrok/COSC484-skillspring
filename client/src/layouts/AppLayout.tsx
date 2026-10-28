@@ -58,9 +58,11 @@ export function AppLayout() {
               Identity verification
             </NavLink>
           )}
-          <NavLink to="/settings" onClick={() => setMenu(false)} className={navLinkClass}>
-            Account settings
-          </NavLink>
+          {student && (
+            <NavLink to="/settings" onClick={() => setMenu(false)} className={navLinkClass}>
+              Account settings
+            </NavLink>
+          )}
           <p className={styles.tagline}>
             Small projects.
             <br />

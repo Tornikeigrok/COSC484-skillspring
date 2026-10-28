@@ -13,6 +13,7 @@ export interface StudentProfile {
     verification_status: 'unverified' | 'verified';
     bio: string | null;
     github_url: string | null;
+    skills: string[],
   };
 }
 

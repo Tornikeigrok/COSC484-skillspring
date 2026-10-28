@@ -1,0 +1,210 @@
+.page {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+/* Section: title above its card */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section + .section {
+  margin-top: 40px;
+}
+
+.sectionIntro h2 {
+  margin-bottom: 6px;
+  font-size: 17px;
+}
+
+.sectionIntro p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: var(--line-height-sm);
+}
+
+.panel {
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Profile identity strip */
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--color-line);
+  background-color: var(--color-canvas);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background-color: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.identityText {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  color: var(--color-navy);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.email {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Form body + sticky-feeling footer bar */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
+  border-top: 1px solid var(--color-line);
+  background-color: var(--color-canvas);
+}
+
+.footer p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+/* Password row */
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 28px;
+}
+
+.summaryIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: var(--color-canvas);
+  color: var(--color-navy);
+}
+
+.summaryText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.summaryTitle {
+  color: var(--color-navy);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.summaryMeta {
+  color: var(--color-muted);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+}
+
+.summaryAction {
+  padding: 7px 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface);
+  color: var(--color-navy);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+@media (hover: hover) {
+  .summaryAction:hover {
+    border-color: #d4dbf8;
+    background-color: var(--color-brand-soft);
+    color: var(--color-brand);
+  }
+}
+
+/* Change-password dialog */
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 24px 24px;
+}
+
+.dialogFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--color-line);
+  background-color: var(--color-canvas);
+}
+
+@media (width < 767px) {
+  .identity,
+  .summary,
+  .body {
+    padding-inline: 20px;
+  }
+
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 20px;
+  }
+}
+
+/* Saved skills under the skills input */
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}

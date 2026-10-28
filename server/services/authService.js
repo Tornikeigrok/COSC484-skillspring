@@ -1,13 +1,14 @@
 const { sequelize, User, Student, Company } = require('../models');
 const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
 const { ConflictError, BadRequestError, UnauthorizedError } = require('../utils/httpExceptions');
+const { validateRequiredText } = require('../utils/profileUtils');
 const { generateToken } = require('./tokenService');
 const bcrypt = require('bcrypt');
 const { ROLE } = require('../constants/authConstants');
 
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 10);
 
-async function createAccount({ firstName, lastName, email, password, role, Profile }) {
+async function createAccount({ firstName, lastName, email, password, role, Profile, profileData = {} }) {
     const cleanFirstName = validateName(firstName, 'First name');
     const cleanLastName = validateName(lastName, 'Last name');
     const cleanEmail = validateEmail(email);
@@ -33,6 +34,7 @@ async function createAccount({ firstName, lastName, email, password, role, Profi
 
             await Profile.create({
                 user_id: newUser.id,
+                ...profileData,
             }, { transaction: t });
 
             return newUser;
@@ -72,8 +74,11 @@ async function login(email, password, expectedRole) {
 module.exports = {
     registerStudent: (firstName, lastName, email, password) =>
         createAccount({ firstName, lastName, email, password, role: ROLE.STUDENT, Profile: Student }),
-    registerCompany: (firstName, lastName, email, password) =>
-        createAccount({ firstName, lastName, email, password, role: ROLE.COMPANY, Profile: Company }),
+    registerCompany: (firstName, lastName, email, password, companyName) =>
+        createAccount({
+            firstName, lastName, email, password, role: ROLE.COMPANY, Profile: Company,
+            profileData: { name: validateRequiredText(companyName, 'Company name', 160) },
+        }),
     loginStudent: (email, password) => login(email, password, ROLE.STUDENT),
     loginCompany: (email, password) => login(email, password, ROLE.COMPANY),
     passwordReset: async (email, currentPassword, newPassword) => {
@@ -99,6 +104,6 @@ module.exports = {
             throw new UnauthorizedError('Unauthorized user');
         }
 
-        return true;
+        return { data: { valid: true, role: user.role }};
     },
 }

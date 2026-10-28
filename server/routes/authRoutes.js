@@ -27,7 +27,8 @@ router.post('/student-register', registerRateLimiter, createHandler(
     registerInput, authController.registerStudent
 ));
 router.post('/company-register', registerRateLimiter, createHandler(
-    registerInput, authController.registerCompany
+    (req) => ({ ...registerInput(req), companyName: req.body.companyName }),
+    authController.registerCompany
 ));
 
 router.post('/student-login', loginRateLimiter, createHandler(

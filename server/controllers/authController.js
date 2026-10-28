@@ -9,7 +9,7 @@ module.exports = {
         authorizedResponse(await authService.registerStudent(input.firstName, input.lastName, input.email, input.password)),
 
     registerCompany: async (input) =>
-        authorizedResponse(await authService.registerCompany(input.firstName, input.lastName, input.email, input.password)),
+        authorizedResponse(await authService.registerCompany(input.firstName, input.lastName, input.email, input.password, input.companyName)),
 
     passwordReset: async (input) => {
         await authService.passwordReset(input.email, input.currentPassword, input.newPassword);
@@ -24,9 +24,7 @@ module.exports = {
         data: { message: 'Logged out' },
         cookies: [{ name: 'token', value: '', options: { ...TOKEN_COOKIE_OPTIONS, maxAge: 0 } }],
     }),
-    validateUser: async (input) => ({
-        data: { 
-            valid: await authService.validateUser(input.userId)
-        },
-    }),
+    validateUser: async (input) => {
+        return await authService.validateUser(input.userId);
+    },
 };

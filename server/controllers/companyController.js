@@ -7,6 +7,9 @@ module.exports = {
     updateProfile: async (input) => {
         return await companyService.updateCompanyProfile(input.userId, input);
     },
+    updatePassword: async (input) => {
+        return await companyService.updatePassword(input.userId, input.currentPassword, input.newPassword);
+    },
     getTasks: async (input) => {
         return await companyService.companyTasks(input.userId);
     },

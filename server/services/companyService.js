@@ -1,6 +1,7 @@
 const { sequelize, User, Company, Task } = require('../models');
-const { NotFoundError, BadRequestError, ForbiddenError, ConflictError } = require('../utils/httpExceptions');
-const { validateName, validateEmail } = require('../utils/authUtils');
+const { NotFoundError, BadRequestError, ForbiddenError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
+const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
+const bcrypt = require('bcrypt');
 const { validateRequiredText, validateOptionalText, validateOptionalUrl } = require('../utils/profileUtils');
 const { websiteDomain, isSameOrSubdomain, isFreeEmailDomain, sameWebsite } = require('../utils/domainUtils');
 const redis = require('../utils/redisClient');
@@ -102,6 +103,25 @@ module.exports = {
 
     // Partial update: only the fields that were sent are changed.
     // verification_status is deliberately NOT editable here (it must never come from the client).
+    updatePassword: async (userId, currentPassword, newPassword) => {
+        const cleanNewPassword = validatePassword(newPassword);
+
+        const user = await User.findByPk(userId);
+        const matches = user?.password_hash && typeof currentPassword === 'string'
+            && await bcrypt.compare(currentPassword, user.password_hash);
+        if (!matches) {
+            throw new UnauthorizedError('Current password is incorrect');
+        }
+
+        if (await bcrypt.compare(cleanNewPassword, user.password_hash)) {
+            throw new BadRequestError('New password must be different from your current password');
+        }
+
+        const hashNew = await bcrypt.hash(cleanNewPassword, 10);
+        await user.update({ password_hash: hashNew, password_updated_at: new Date() });
+
+        return { data: { password_updated: true } };
+    },
     updateCompanyProfile: async (userId, input) => {
         const userChanges = {};
         const companyChanges = {};

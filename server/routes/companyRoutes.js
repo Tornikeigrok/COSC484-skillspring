@@ -15,7 +15,7 @@ router.get('/profile', createHandler(
     companyController.getProfile,
 ));
 
-router.patch('/profile', createHandler(
+router.patch('/update-profile', createHandler(
     (req) => {
         const body = req.body || {};
         return {
@@ -28,6 +28,15 @@ router.patch('/profile', createHandler(
         };
     },
     companyController.updateProfile,
+));
+
+router.patch('/update-password', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        currentPassword: req.body.currentPassword,
+        newPassword: req.body.newPassword,
+    }),
+    companyController.updatePassword,
 ));
 
 router.get('/tasks', createHandler(

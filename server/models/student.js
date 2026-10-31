@@ -31,6 +31,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: VERIFICATION_STATUS.UNVERIFIED,
     },
+    skills: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false,
+      defaultValue: [],
+    },
   }, {
     sequelize,
     modelName: 'Student',

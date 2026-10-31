@@ -13,7 +13,7 @@ import layout from '../../styles/layout.module.css';
 import linkCard from '../../styles/link-card.module.css';
 import links from '../../styles/links.module.css';
 import text from '../../styles/text.module.css';
-import { useFetchProfile } from './hooks/use-profile';
+import { useCurrentUser } from './hooks/use-profile';
 import {
   sampleDashboardAssignments,
   sampleDashboardProposals,
@@ -21,10 +21,16 @@ import {
 } from './constants/sample-dashboard';
 import { getActiveAssignments } from './utils/get-active-assignments';
 import styles from './DashboardPage.module.css';
+
+
+
+
 export default function DashboardPage() {
-  const { data: profile, isPending, error, refetch } = useFetchProfile();
+  const { data: profile, isPending, error, refetch } = useCurrentUser();
   if (isPending) return <Loading />;
   if (!profile) return <ErrorMessage error={error} retry={() => refetch()} />;
+
+
   const student = profile.role === 'student';
   const tasks = sampleDashboardTasks;
   const proposals = sampleDashboardProposals;
@@ -41,6 +47,8 @@ export default function DashboardPage() {
         ['Active assignments', active.length],
         ['Awaiting review', items.filter((a) => a.status === 'submitted').length],
       ];
+
+
   return (
     <>
       <PageHeading

@@ -3,6 +3,7 @@ const {
   Model
 } = require('sequelize');
 const { ROLE } = require('../constants/authConstants');
+const { AUTH_PROVIDERS } = require('../constants/authConstants');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
@@ -19,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     password_hash: {
       type: DataTypes.TEXT,
-      allowNull: false,
+      allowNull: true,
     },
     password_updated_at: {
       type: DataTypes.DATE,
@@ -32,6 +33,9 @@ module.exports = (sequelize, DataTypes) => {
     last_name: {
       type: DataTypes.TEXT,
       allowNull: false,
+    },
+    auth_provider: {
+      type: DataTypes.ENUM(...Object.values(AUTH_PROVIDERS)),
     },
     role: {
       type: DataTypes.ENUM(...Object.values(ROLE)),

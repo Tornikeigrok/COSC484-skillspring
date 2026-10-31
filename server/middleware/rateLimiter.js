@@ -14,6 +14,7 @@ const passwordResetLimiter = rateLimit({
     legacyHeaders: false,
     passOnStoreError: false,
     store: openRedisStore('password-reset'),
+    message: { message: 'Too many password reset attempts, try again later' },
 });
 
 const registerRateLimiter = rateLimit({
@@ -23,6 +24,7 @@ const registerRateLimiter = rateLimit({
     legacyHeaders: false,
     passOnStoreError: false,
     store: openRedisStore('register-reset'),
+    message: { message: 'Too many sign up attempts, try again later' },
 });
 
 const loginRateLimiter = rateLimit({
@@ -32,9 +34,9 @@ const loginRateLimiter = rateLimit({
     legacyHeaders: false,
     passOnStoreError: false,
     store: openRedisStore('login-reset'),
+    message: { message: 'Too many login attempts, try again later' },
 });
 
-// Per user 
 const verificationLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     limit: 3,
@@ -42,12 +44,25 @@ const verificationLimiter = rateLimit({
     legacyHeaders: false,
     passOnStoreError: false,
     store: openRedisStore('student-verification'),
-    keyGenerator: (req) => String(req.user.userId),
+    keyGenerator: (req) => String(req.user.userId), // per user
+    message: { message: 'Too many verification requests, try again later' },
+});
+
+const verificationValidatorLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: 4,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    passOnStoreError: false,
+    store: openRedisStore('student-verification-validate'),
+    keyGenerator: (req) => String(req.user.userId), // per user
+    message: { message: 'Too many verification requests, try again later' },
 });
 
 module.exports = { 
     passwordResetLimiter,
     registerRateLimiter,
     loginRateLimiter,
-    verificationLimiter
+    verificationLimiter,
+    verificationValidatorLimiter
 };

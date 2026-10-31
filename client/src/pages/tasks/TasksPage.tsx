@@ -12,6 +12,8 @@ import { sampleTasks } from './constants/sample-tasks';
 import { filterTasks } from './utils/filter-tasks';
 import { taskSearchSchema } from './utils/tasks-validations';
 import styles from './TasksPage.module.css';
+
+
 export default function TasksPage() {
   const [params, setParams] = useSearchParams();
   const [error, setError] = useState<string>();
@@ -20,6 +22,7 @@ export default function TasksPage() {
   const sortParam = params.get('sort') || '';
   const sort: TaskSort = sortParam in TASK_SORTS ? (sortParam as TaskSort) : 'recent';
   const tasks = filterTasks(sampleTasks.items, { q, category, sort });
+
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
@@ -27,6 +30,7 @@ export default function TasksPage() {
     next.delete('page');
     setParams(next);
   }
+
   function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const result = taskSearchSchema.safeParse(
@@ -39,6 +43,7 @@ export default function TasksPage() {
     setError(undefined);
     update('q', result.data.q);
   }
+
   return (
     <>
       <form key={q} role="search" onSubmit={search} noValidate className={styles.search}>

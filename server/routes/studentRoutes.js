@@ -5,13 +5,32 @@ const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/userMiddleware');
 const { createHandler } = require('../utils/handler');
 const { ROLE } = require("../constants/authConstants");
-const { verificationLimiter } = require('../middleware/rateLimiter');
+const { verificationLimiter, verificationValidatorLimiter } = require('../middleware/rateLimiter');
 
 router.use(authMiddleware, roleMiddleware(ROLE.STUDENT));
 
 router.get('/profile', createHandler(
     (req) => ({ userId: req.user.userId }),
     studentController.userProfile,
+));
+
+router.patch('/update-profile', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        bio: req.body.bio,
+        githubUrl: req.body.githubUrl,
+        skills: req.body.skills,
+    }),
+    studentController.updateProfile,
+));
+
+router.patch('/update-password', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        currentPassword: req.body.currentPassword,
+        newPassword: req.body.newPassword,
+    }),
+    studentController.updatePassword,
 ));
 
 router.get('/verification-universities', createHandler(
@@ -30,12 +49,19 @@ router.post('/student-verification', verificationLimiter, createHandler(
     studentController.studentVerification,
 ));
 
-router.post('/validate-code', createHandler(
+router.post('/validate-code', verificationValidatorLimiter, createHandler(
     (req) => ({
         userId: req.user.userId,
         code: req.body.code,
     }),
     studentController.validateVerificationCode,
+));
+
+router.post('/resend-verification', verificationLimiter, createHandler(
+    (req) => ({
+        userId: req.user.userId,
+    }),
+    studentController.resendVerification,
 ));
 
 

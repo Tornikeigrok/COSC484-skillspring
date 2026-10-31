@@ -38,6 +38,9 @@ function validateOptionalUrl(value, field) {
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
         throw new BadRequestError(`${field} must be a valid URL starting with http:// or https://`);
     }
+    if (parsed.username || parsed.password) {
+        throw new BadRequestError(`${field} must not contain a username or password`);
+    }
     return url;
 }
 

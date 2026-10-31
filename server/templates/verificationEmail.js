@@ -1,4 +1,4 @@
-function verificationEmail({ code }) {
+function verificationEmail({ code, type = 'student' }) {
     const html = `
 <!doctype html>
 <html>
@@ -7,7 +7,7 @@ function verificationEmail({ code }) {
     <tr><td align="center">
       <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:12px;padding:40px 32px;">
         <tr><td style="font-size:22px;font-weight:bold;color:#1e2a5a;">SkillSpring</td></tr>
-        <tr><td style="padding-top:24px;font-size:16px;color:#333;">Here's your student verification code:</td></tr>
+        <tr><td style="padding-top:24px;font-size:16px;color:#333;">Here's your ${type} verification code:</td></tr>
         <tr><td align="center" style="padding:24px 0;">
           <div style="display:inline-block;font-size:32px;font-weight:bold;letter-spacing:8px;color:#1e2a5a;background:#eef1fb;padding:16px 24px;border-radius:8px;">${code}</div>
         </td></tr>

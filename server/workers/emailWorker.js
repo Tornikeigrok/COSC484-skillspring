@@ -10,7 +10,7 @@ function executeVerificationQueue() {
         const code = data.code;
         console.log('data', data);
 
-        const { subject, html, text } = verificationEmail({ code });
+        const { subject, html, text } = verificationEmail({ code, type: data.type });
 
         await mg.messages.create(process.env.MAILGUN_DOMAIN, {
             from: process.env.MAILGUN_FROM,

@@ -11,6 +11,12 @@
   line-height: var(--line-height-sm);
 }
 
+.input:read-only:not([type='file']) {
+  background-color: var(--color-canvas);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
 .input::placeholder {
   color: #78859a;
 }

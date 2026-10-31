@@ -15,6 +15,11 @@ const VERIFICATION_STATUS = {
     VERIFIED: 'verified',
 }
 
+const AUTH_PROVIDERS = {
+    LOCAL: 'local',
+    GITHUB: 'github',
+}
+
 const COOKIE_AGE = 60 * 60 * 1000;
 
 module.exports = {
@@ -24,4 +29,5 @@ module.exports = {
     ROLE,
     VERIFICATION_STATUS,
     COOKIE_AGE,
+    AUTH_PROVIDERS
 }

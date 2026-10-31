@@ -19,18 +19,25 @@ export function RequireAuth({ role }: { role?: Role }) {
     return <Navigate to={auth.role === 'student' ? '/student' : '/business'} replace />;
   return <Outlet />;
 }
+
+
+
 export function AppLayout() {
   const { data: user, isPending } = useCurrentUser();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const logout = useLogout();
   const [menu, setMenu] = useState(false);
+
   if (isPending) return <Loading />;
   if (!user) return <Navigate to="/" replace />;
+
   const student = user.role === 'student';
   const links = student ? STUDENT_LINKS : BUSINESS_LINKS;
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cx(styles.navLink, isActive ? styles.navLinkActive : styles.navLinkIdle);
+
+
   return (
     <div className={styles.shell}>
       <a className={linkStyles.skipLink} href="#main-content">
@@ -60,11 +67,9 @@ export function AppLayout() {
               Identity verification
             </NavLink>
           )}
-          {student && (
-            <NavLink to="/settings" onClick={() => setMenu(false)} className={navLinkClass}>
-              Account settings
-            </NavLink>
-          )}
+          <NavLink to="/settings" onClick={() => setMenu(false)} className={navLinkClass}>
+            Account settings
+          </NavLink>
           <p className={styles.tagline}>
             Small projects.
             <br />

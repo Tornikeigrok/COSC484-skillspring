@@ -18,6 +18,7 @@ import text from '../../styles/text.module.css';
 import { sampleProfile } from './constants/sample-profile';
 import { toOwnProfile } from './utils/own-profile';
 import styles from './ProfilePage.module.css';
+import { CompanyProfileView } from './CompanyProfileView';
 export default function ProfilePage() {
   const { id } = useParams();
   const { data: me, isPending } = useCurrentUser();
@@ -25,6 +26,7 @@ export default function ProfilePage() {
   if (own && isPending) return <Loading />;
   const { user, profile, experiences } = own && me ? toOwnProfile(me) : sampleProfile;
   const student = user.role === 'student';
+  if (!student) return <CompanyProfileView user={user} profile={profile} own={own} />;
   return (
     <>
       <PageHeading

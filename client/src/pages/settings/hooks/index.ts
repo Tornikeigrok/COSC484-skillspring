@@ -8,6 +8,12 @@ interface profileBody {
     skills: string[],
 } 
 
+interface companyProfile {
+    first_name: string;
+    last_name: string;
+    description: string;
+}
+
 interface updatePasswordBody {
     currentPassword: string,
     newPassword: string,
@@ -30,5 +36,26 @@ export function useUpdatePassword() {
         onSuccess: () => {
             toast.success('password updated!');
         },
+    });
+}
+
+
+export function useUpdateCompanyPassword() {
+    return useMutation({
+        mutationFn: async (data: updatePasswordBody) => apiRequest('/api/company/update-password', 'PATCH', data),
+        onSuccess: () => {
+            toast.success('password updated!');
+        },
+    });
+}
+
+export function useUpdateCompanyProfile() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (body: companyProfile) => apiRequest('/api/company/update-profile', 'PATCH', body),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['company-profile'] });
+            toast.success('profile updated!');
+        }
     });
 }

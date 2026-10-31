@@ -1,0 +1,244 @@
+/* GitHub "new repository" style: plain page, ruled sections, no cards */
+.page {
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.header {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.header h1 {
+  margin: 0 0 6px;
+  color: var(--color-navy);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.header p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.required {
+  margin: 16px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+/* keep short controls from stretching across the whole page */
+.typeField {
+  max-width: 320px;
+}
+
+.hoursField {
+  max-width: 160px;
+}
+
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: 12px;
+  padding: 0;
+  color: var(--color-navy);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Difficulty: radio + label + one-line description, like GitHub's Public/Private */
+.radioList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.radio input {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--color-brand);
+  cursor: pointer;
+}
+
+.radioLabel {
+  display: block;
+  color: var(--color-navy);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.radioHint {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Files: dashed drop area */
+.dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px dashed var(--color-dashed);
+  border-radius: 10px;
+  background-color: var(--color-canvas);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.dropzone:hover {
+  border-color: var(--color-brand);
+}
+
+.dropzone:focus-within {
+  border-color: var(--color-brand);
+  outline: 3px solid var(--color-brand-soft);
+}
+
+.dropzoneFilled {
+  border-style: solid;
+  border-color: var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.fileInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dropIcon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  color: var(--color-muted);
+}
+
+.dropzoneFilled .dropIcon {
+  color: var(--color-brand);
+}
+
+.dropText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+}
+
+.dropText strong {
+  overflow: hidden;
+  color: var(--color-navy);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropText span {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.dropText .browse {
+  color: var(--color-brand);
+  font-size: inherit;
+}
+
+/* quiet text button under the drop area; turns red on hover since it removes something */
+.clearFile {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.clearFile svg {
+  width: 15px;
+  height: 15px;
+}
+
+.clearFile:hover {
+  border-color: #f3c2c2;
+  background-color: #fdf2f2;
+  color: #c53030;
+}
+
+.clearFile:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropzone,
+  .clearFile {
+    transition: none;
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0 8px;
+}
+
+.footer p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+@media (width < 767px) {
+  .typeField,
+  .hoursField {
+    max-width: none;
+  }
+
+  .footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

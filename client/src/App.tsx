@@ -80,10 +80,8 @@ export default function App() {
                   element={<AssignmentPage view="validation" />}
                 />
                 <Route path="/profile" element={<ProfilePage />} />
-                {/* settings is student-only for now; companies have no Student profile */}
-                <Route element={<RequireAuth role="student" />}>
-                  <Route path="/settings" element={<SettingsPage />} />
-                </Route>
+                <Route path="/settings" element={<SettingsPage />} />
+                
                 <Route path="/verification" element={<VerificationPage />} />
                 <Route path='/verification-code' element={<VerificationCodePage />} />
               </Route>

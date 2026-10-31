@@ -7,6 +7,8 @@ const nameFields = {
   last_name: z.string().min(1, 'last name is required').max(80, 'last name is too long'),
 };
 
+/* Student Profile Schema */
+
 export const studentProfileSchema = z.object({
   bio: z.string().max(2000, 'bio must be at most 2,000 characters'),
   github_url: optionalUrl,
@@ -14,16 +16,23 @@ export const studentProfileSchema = z.object({
 });
 export type StudentProfileFormData = z.infer<typeof studentProfileSchema>;
 
+
+
+/* Company Profile Schema */
 export const companyProfileSchema = z.object({
   ...nameFields,
-  name: z
+  /*name: z
     .string()
     .min(1, 'company name is required')
     .max(160, 'company name must be at most 160 characters'),
+  */
   description: z.string().max(2000, 'description must be at most 2,000 characters'),
-  website: optionalUrl,
+  // website: optionalUrl,
 });
 export type CompanyProfileFormData = z.infer<typeof companyProfileSchema>;
+
+
+
 
 export const changePasswordSchema = z.object({
   current_password: z.string().min(1, 'current password is required'),

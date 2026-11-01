@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   class Task extends Model {
     static associate(models) {
         Task.belongsTo(models.Company, { foreignKey: 'company_id' });
+        Task.hasOne(models.TaskAsset, { foreignKey: 'task_id' });
     }
   }
   Task.init({

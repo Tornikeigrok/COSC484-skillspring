@@ -64,7 +64,6 @@ function Illustration({ reducedMotion }: { reducedMotion: boolean }) {
     entered: typeof IntersectionObserver === 'undefined',
     visible: typeof IntersectionObserver === 'undefined',
   }));
-  const [paused, setPaused] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const onLoad = useCallback(() => setLoaded(true), []);
@@ -89,7 +88,7 @@ function Illustration({ reducedMotion }: { reducedMotion: boolean }) {
   }, []);
 
   const enabled = viewport.entered && !reducedMotion && !failed;
-  const playing = viewport.visible && !hidden && !paused;
+  const playing = viewport.visible && !hidden;
   const showAnimation = enabled && loaded;
 
   return (

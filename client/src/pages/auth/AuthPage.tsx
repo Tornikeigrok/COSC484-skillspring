@@ -8,13 +8,13 @@ import links from '../../styles/links.module.css';
 import text from '../../styles/text.module.css';
 import { AUTH_POINTS } from './constants/auth-points';
 import { ROLES, ROLE_LABELS } from './constants/roles';
-import { useCompanyRegister, useRegister } from './hooks/use-auth-hooks';
+import { useCompanyRegister, useStudentRegister, useStudentLogin, useCompanyLogin } from './hooks/use-auth-hooks';
 import {
   loginSchema,
   registerCompanySchema,
   registerStudentSchema,
 } from './utils/auth-validations';
-import type { RegisterCompanyFormData, RegisterStudentFormData } from './utils/auth-validations';
+import type { LoginFormData, RegisterCompanyFormData, RegisterStudentFormData } from './utils/auth-validations';
 import { useForm } from 'react-hook-form';
 import type { FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,7 +46,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
   }
 
   // Student registration part
-  const studentMutation = useRegister();
+  const studentMutation = useStudentRegister();
 
   const { register: studentRegister, handleSubmit: studentRegisterHandle, formState: { errors: studentRegErrors }} = useForm({
      resolver: zodResolver(registerStudentSchema),
@@ -64,13 +64,36 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
     );
   }
 
+  // Student login part
+  const studentLoginMutation = useStudentLogin();
+
+  const handleStudentLogin = (data: LoginFormData) => {
+    studentLoginMutation.mutate(
+      { email: data.email, password: data.password },
+      { onSuccess: () => navigate(safeNext(params.get('next')) ?? '/student') },
+    );
+  }
+
+  // Company login part
+  const companyLoginMutation = useCompanyLogin();
+
+  const handleCompanyLogin = (data: LoginFormData) => {
+    companyLoginMutation.mutate(
+      { email: data.email, password: data.password },
+      { onSuccess: () => navigate(safeNext(params.get('next')) ?? '/business') },
+    );
+  }
+
+
   const { register: loginRegister, handleSubmit: loginHandle, formState: { errors: loginErrors }} = useForm({
      resolver: zodResolver(loginSchema),
   });
 
   const company = register && role === 'company';
   const onSubmit = !register
-    ? loginHandle(() => {})
+    ? role === 'company'
+      ? loginHandle(handleCompanyLogin)
+      : loginHandle(handleStudentLogin)
     : company
       ? companyRegisterHandle(handleCompanyReg)
       : studentRegisterHandle(handleStudentReg);
@@ -82,7 +105,9 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
         : studentRegister(name);
   // company errors are a superset of the other two, so one type covers every field
   const errors = (!register ? loginErrors : company ? companyRegErrors : studentRegErrors) as FieldErrors<RegisterCompanyFormData>;
-  const mutation = company ? companyMutation : studentMutation;
+  const mutation = !register
+    ? role === 'company' ? companyLoginMutation : studentLoginMutation
+    : company ? companyMutation : studentMutation;
 
   return (
     <div className={styles.page}>
@@ -122,23 +147,21 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
               ? 'Create your account and take the next step.'
               : 'Log in to keep your work moving.'}
           </p>
-          {register && (
-            <fieldset className={styles.roles}>
-              <legend className={styles.srOnly}>Account type</legend>
-              {ROLES.map((r) => (
-                <label key={r} className={cx(styles.role, role === r && styles.roleActive)}>
-                  <input
-                    type="radio"
-                    name="role"
-                    value={r}
-                    checked={role === r}
-                    onChange={() => setRole(r)}
-                  />
-                  {ROLE_LABELS[r]}
-                </label>
-              ))}
-            </fieldset>
-          )}
+          <fieldset className={styles.roles}>
+            <legend className={styles.srOnly}>Account type</legend>
+            {ROLES.map((r) => (
+              <label key={r} className={cx(styles.role, role === r && styles.roleActive)}>
+                <input
+                  type="radio"
+                  name="role"
+                  value={r}
+                  checked={role === r}
+                  onChange={() => setRole(r)}
+                />
+                {ROLE_LABELS[r]}
+              </label>
+            ))}
+          </fieldset>
           {!register && (
             <>
               <a className={styles.github} href={`${import.meta.env.VITE_API_URL ?? ''}/api/auth/github`}>
@@ -189,9 +212,9 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
                 autoComplete={register ? 'new-password' : 'current-password'}
               />
             </Field>
-            <FieldError message={register ? mutation.error?.message : undefined} />
+            <FieldError message={mutation.error?.message} />
             <Button type="submit" busy={mutation.isPending}>
-              {mutation.isPending ? 'Creating account...' : register ? 'Create account' : 'Log in'} <span aria-hidden="true">→</span>
+              {mutation.isPending ? (register ? 'Creating account...' : 'Logging in...') : register ? 'Create account' : 'Log in'} <span aria-hidden="true">→</span>
             </Button>
           </form>
           <p className={styles.switch}>
@@ -207,4 +230,9 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
       </main>
     </div>
   );
+}
+
+// Only follow in-app paths from ?next= so a crafted link can't send users off-site
+function safeNext(next: string | null) {
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : null;
 }

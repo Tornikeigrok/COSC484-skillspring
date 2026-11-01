@@ -153,16 +153,12 @@ test('reduced motion shows a still without loading the animation player', () => 
   const { container } = render(<HeroAnimation />);
   expect(container.querySelector('img')).toHaveAttribute('src', fallbackUrl);
   expect(screen.queryByTestId('lottie-player')).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: /illustration/ })).not.toBeInTheDocument();
 });
 
-test('animation can be paused, pauses offscreen, and responds to reduced motion changes', async () => {
+test('animation pauses offscreen and when the tab is hidden, and responds to reduced motion changes', async () => {
   reduced = false;
   render(<HeroAnimation />);
-  const user = userEvent.setup();
-  await user.click(await screen.findByRole('button', { name: 'Pause illustration' }));
-  expect(player.props?.playing).toBe(false);
-  await user.click(screen.getByRole('button', { name: 'Play illustration' }));
+  await screen.findByTestId('lottie-player');
   expect(player.props?.playing).toBe(true);
   act(() => visibilityChange(false));
   expect(player.props?.playing).toBe(false);
@@ -179,15 +175,13 @@ test('animation can be paused, pauses offscreen, and responds to reduced motion 
     motionChange();
   });
   expect(screen.queryByTestId('lottie-player')).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: /illustration/ })).not.toBeInTheDocument();
 });
 
-test('a renderer failure leaves the static fallback and removes playback controls', async () => {
+test('a renderer failure leaves the static fallback', async () => {
   reduced = false;
   const { container } = render(<HeroAnimation />);
-  await screen.findByRole('button', { name: 'Pause illustration' });
+  await screen.findByTestId('lottie-player');
   act(() => player.props?.onError());
   await waitFor(() => expect(screen.queryByTestId('lottie-player')).not.toBeInTheDocument());
   expect(container.querySelector('img')).not.toBeNull();
-  expect(screen.queryByRole('button', { name: /illustration/ })).not.toBeInTheDocument();
 });

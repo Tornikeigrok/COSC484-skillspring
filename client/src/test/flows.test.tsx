@@ -7,6 +7,7 @@ import AuthPage from '../pages/auth/AuthPage';
 import LandingPage from '../pages/landing/LandingPage';
 import { RequireAuth } from '../layouts/AppLayout';
 import AssignmentPage from '../pages/assignments/AssignmentPage';
+
 function mount(element: React.ReactNode, path = '/') {
   return render(
     <QueryClientProvider client={new QueryClient()}>
@@ -14,6 +15,7 @@ function mount(element: React.ReactNode, path = '/') {
     </QueryClientProvider>,
   );
 }
+
 test('landing links lead to real routes and example opportunities are labeled', () => {
   mount(<LandingPage />);
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('experience you can prove');
@@ -22,6 +24,7 @@ test('landing links lead to real routes and example opportunities are labeled', 
     expect(link).toHaveAttribute('href', '/register?role=company');
   }
 });
+
 test('role guard redirects students away from business actions', async () => {
   vi.spyOn(globalThis, 'fetch').mockResolvedValue(
     new Response(
@@ -53,6 +56,7 @@ test('role guard redirects students away from business actions', async () => {
   expect(await screen.findByRole('heading', { name: 'Student overview' })).toBeInTheDocument();
   expect(screen.queryByText('Restricted form')).not.toBeInTheDocument();
 });
+
 test('validation UI never describes archive checks as successful code execution', () => {
   mount(
     <Routes>
@@ -64,6 +68,7 @@ test('validation UI never describes archive checks as successful code execution'
   expect(screen.getByText('Execution: not run')).toBeInTheDocument();
   expect(screen.getByText('Archive checks passed')).toBeInTheDocument();
 });
+
 test('login shows zod field errors under the inputs and clears them on edit', async () => {
   mount(<AuthPage />, '/login');
   const user = userEvent.setup();
@@ -71,9 +76,11 @@ test('login shows zod field errors under the inputs and clears them on edit', as
   await user.click(screen.getByRole('button', { name: /Log in/ }));
   expect(await screen.findByText('enter a valid email')).toBeInTheDocument();
   expect(screen.getByText('password is required')).toBeInTheDocument();
-  await user.type(screen.getByLabelText('Email address'), 'x');
+  await user.clear(screen.getByLabelText('Email address'));
+  await user.type(screen.getByLabelText('Email address'), 'student@example.com');
   expect(screen.queryByText('enter a valid email')).not.toBeInTheDocument();
 });
+
 test('student registration posts the mapped body and shows server errors', async () => {
   const fetchSpy = vi
     .spyOn(globalThis, 'fetch')
@@ -100,4 +107,27 @@ test('student registration posts the mapped body and shows server errors', async
       }),
     }),
   );
+});
+
+test('login posts to the endpoint for the chosen role and shows server errors', async () => {
+  const fetchSpy = vi
+    .spyOn(globalThis, 'fetch')
+    .mockResolvedValue(
+      new Response(JSON.stringify({ message: 'Invalid email or password' }), { status: 401 }),
+    );
+  mount(<AuthPage />, '/login');
+  const user = userEvent.setup();
+  await user.click(screen.getByLabelText(/business/));
+  await user.type(screen.getByLabelText('Email address'), 'ada@example.com');
+  await user.type(screen.getByLabelText('Password'), 'a-long-password');
+  await user.click(screen.getByRole('button', { name: /Log in/ }));
+  expect(await screen.findByText('Invalid email or password')).toBeInTheDocument();
+  expect(fetchSpy).toHaveBeenCalledWith(
+    '/api/auth/company-login',
+    expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ email: 'ada@example.com', password: 'a-long-password' }),
+    }),
+  );
+  fetchSpy.mockRestore();
 });

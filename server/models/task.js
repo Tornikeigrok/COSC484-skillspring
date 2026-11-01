@@ -38,6 +38,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM(...Object.values(TASK_TYPE)),
       allowNull: false,
     },
+    rejected_reason: {
+      type: DataTypes.ARRAY(DataTypes.TEXT),
+      allowNull: true
+    }
   }, {
     sequelize,
     modelName: 'Task',

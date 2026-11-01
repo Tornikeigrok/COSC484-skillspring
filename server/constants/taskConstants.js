@@ -15,6 +15,7 @@ const TASK_STATUS = {
     CANCELLED: 'cancelled',
     IN_REVIEW: 'in_review',
     REJECTED: 'rejected',
+    ESCALATED: 'escalated',
 }
 
 const TASK_TYPE = {
@@ -50,6 +51,12 @@ const BLOCKED_EXTENSIONS = new Set(['.exe', '.dll', '.so', '.msi', '.dmg', '.bat
 
 const SOFT_AUTO_RUN_FILE = /(^|\/)(\.vscode\/tasks\.json|setup\.py)$/;
 
+const MAX_CHARS_PER_FILE = 20000;
+
+const MAX_TOTAL_CHARS = 200000;
+
+const SKIPPED_FILES = new Set(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']);
+
 
 module.exports = {
     TASK_DIFFICULTY,
@@ -66,4 +73,7 @@ module.exports = {
     DANGEROUS_COMMAND,
     BLOCKED_EXTENSIONS,
     SOFT_AUTO_RUN_FILE,
+    MAX_CHARS_PER_FILE,
+    MAX_TOTAL_CHARS,
+    SKIPPED_FILES
 }

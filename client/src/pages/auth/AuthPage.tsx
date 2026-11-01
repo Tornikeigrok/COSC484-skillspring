@@ -162,7 +162,8 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
               </label>
             ))}
           </fieldset>
-          {!register && (
+          {/* GitHub sign-in is student-only (rejected by server otherwise)*/}
+          {!register && role === 'student' && (
             <>
               <a className={styles.github} href={`${import.meta.env.VITE_API_URL ?? ''}/api/auth/github`}>
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

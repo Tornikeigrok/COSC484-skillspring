@@ -131,3 +131,17 @@ test('login posts to the endpoint for the chosen role and shows server errors', 
   );
   fetchSpy.mockRestore();
 });
+
+test('GitHub sign-in is only offered to students on the login page', async () => {
+  mount(<AuthPage />, '/login');
+  const user = userEvent.setup();
+  expect(screen.getByRole('link', { name: /Continue with GitHub/ })).toBeInTheDocument();
+  expect(screen.getByText('or log in with email')).toBeInTheDocument();
+
+  await user.click(screen.getByLabelText(/business/));
+  expect(screen.queryByRole('link', { name: /Continue with GitHub/ })).not.toBeInTheDocument();
+  expect(screen.queryByText('or log in with email')).not.toBeInTheDocument();
+
+  await user.click(screen.getByLabelText(/student/));
+  expect(screen.getByRole('link', { name: /Continue with GitHub/ })).toBeInTheDocument();
+});

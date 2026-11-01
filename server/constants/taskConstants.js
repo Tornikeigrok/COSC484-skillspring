@@ -39,7 +39,7 @@ const MAX_TOTAL_SIZE = 200 * 1024 * 1024; // 200 MB
 
 const MAX_FILE_COUNT = 5000;
 
-const TEXT_EXTENSIONS = new Set(['.js', '.html', '.css', '.json', '.md', '.txt', '.py']);
+const INERT_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.woff', '.woff2', '.ttf', '.mp3', '.mp4']);
 
 const AUTO_RUN_SCRIPTS = ['preinstall', 'install', 'postinstall', 'prepare'];
 
@@ -57,6 +57,10 @@ const MAX_TOTAL_CHARS = 200000;
 
 const SKIPPED_FILES = new Set(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']);
 
+const AUTOMATION_FAILED = ['Automated review could not start'];
+
+const UNSCANNED_CODE = ['unscanned code needs review'];
+
 
 module.exports = {
     TASK_DIFFICULTY,
@@ -67,7 +71,6 @@ module.exports = {
     MAX_FILE_SIZE,
     MAX_TOTAL_SIZE,
     MAX_FILE_COUNT,
-    TEXT_EXTENSIONS,
     AUTO_RUN_SCRIPTS,
     AUTO_RUN_FILE,
     DANGEROUS_COMMAND,
@@ -75,5 +78,8 @@ module.exports = {
     SOFT_AUTO_RUN_FILE,
     MAX_CHARS_PER_FILE,
     MAX_TOTAL_CHARS,
-    SKIPPED_FILES
+    SKIPPED_FILES,
+    AUTOMATION_FAILED,
+    UNSCANNED_CODE,
+    INERT_EXTENSIONS,
 }

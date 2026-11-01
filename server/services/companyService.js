@@ -1,4 +1,4 @@
-const { sequelize, User, Company, Task } = require('../models');
+const { sequelize, User, Company, Task, TaskAsset, } = require('../models');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
 const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
 const bcrypt = require('bcrypt');
@@ -8,6 +8,12 @@ const redis = require('../utils/redisClient');
 const crypto = require('crypto');
 const { queueVerificationEmail } = require('../queues/emailQueue');
 const { VERIFICATION_STATUS, verificationCodeFormat } = require('../constants/authConstants');
+const { checkTitle, checkDesc, checkEstHrs, checkTaskType, checkFile, checkDifficulty } =require('../utils/taskUtils');
+const { TASK_STATUS, ASSET_TYPE, TASK_UPLOAD_DIR, AUTOMATION_FAILED } = require('../constants/taskConstants');
+const path = require('path');
+const fs = require('fs/promises');
+const { queueTaskCheck } = require('../queues/taskQueue');
+
 
 async function fetchProfile(userId, options = {}) {
     const user = await User.findByPk(userId, {
@@ -252,5 +258,75 @@ module.exports = {
 
         const pending = JSON.parse(raw);
         return await sendEmailVerif(userId, pending.email, pending.website, pending.description);
+    },
+    postTask: async (userId, taskTitle, taskDesc, taskType, difficulty, estimated_hours, file) => {
+        checkFile(file);
+        checkTaskType(taskType);
+        checkDifficulty(difficulty);
+
+        const title = checkTitle(taskTitle);
+        const desc = checkDesc(taskDesc);
+        const hrs = checkEstHrs(estimated_hours);
+
+        const company = await Company.findOne({
+            attributes: ['id'],
+            where: { user_id: userId },
+        });
+
+        if (!company) {
+           throw new NotFoundError('Company profile not found');
+        }
+
+        /**
+         * Create random UUID for each zip so names don't collide
+         * join it using path.join which gives us the full path to the file which we will insert into folder
+         * mkdir will create a folder in which all zips will go
+         * each zip then had to be written into the created folder.
+         */
+        const storedFilename = `${crypto.randomUUID()}.zip`;
+        const fileForZip = path.join(TASK_UPLOAD_DIR, storedFilename);
+        await fs.mkdir(TASK_UPLOAD_DIR, { recursive: true });
+        await fs.writeFile(fileForZip, file.buffer);
+
+        let taskCreated;
+        try {
+            taskCreated = await sequelize.transaction(async (t) => {
+              const task = await Task.create(
+                 {
+                    company_id: company.id,
+                    title,
+                    description: desc,
+                    difficulty,
+                    estimated_hours: hrs,
+                    status: TASK_STATUS.IN_REVIEW,
+                    task_type: taskType,
+                 }, { transaction: t });
+            
+              await TaskAsset.create(
+                {
+                    task_id: task.id,
+                    original_filename: file.originalname,
+                    stored_filename: storedFilename,
+                    file_type: ASSET_TYPE.ZIP,
+                }, { transaction: t });
+
+            return task;
+        });
+        } catch(err) {
+            await fs.rm(fileForZip, { force: true });
+            throw err;
+        }
+
+        try {
+            await queueTaskCheck({ taskId: taskCreated.id, storedFilename });
+        } catch (err) {
+            console.error(err);
+            await Task.update(
+                { status: TASK_STATUS.ESCALATED, rejected_reason: AUTOMATION_FAILED },
+                { where: { id: taskCreated.id } }
+            );
+        }
+
+        return { data: { fileStored: true, id: taskCreated.id }};
     },
 };

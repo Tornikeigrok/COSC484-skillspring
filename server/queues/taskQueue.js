@@ -5,7 +5,7 @@ let queue = null;
 function checkQueue() {
   if (!queue) {
     queue = new Queue('just-posted-task-queue', {
-        connection: getRedisConnection(),
+        connection: { ...getRedisConnection(), enableOfflineQueue: false },
         defaultJobOptions: {
             attempts: 3,
             backoff: {

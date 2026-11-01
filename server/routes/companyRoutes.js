@@ -5,7 +5,8 @@ const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/userMiddleware');
 const { createHandler } = require('../utils/handler');
 const { ROLE } = require('../constants/authConstants');
-const { verificationLimiter, verificationValidatorLimiter } = require('../middleware/rateLimiter');
+const { verificationLimiter, verificationValidatorLimiter, postTaskLimiter } = require('../middleware/rateLimiter');
+const multer = require('multer');
 
 // Everything under /api/company needs a valid login AND the company role.
 router.use(authMiddleware, roleMiddleware(ROLE.COMPANY));
@@ -71,5 +72,24 @@ router.post('/resend-verification', verificationLimiter, createHandler(
     }),
     companyController.resendVerification,
 ));
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 },
+});
+
+router.post('/post-task', postTaskLimiter, upload.single('file'), createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        taskTitle: req.body.taskTitle,
+        taskDesc: req.body.taskDesc,
+        taskType: req.body.taskType,
+        difficulty: req.body.difficulty,
+        estimated_hours: req.body.estimated_hours,
+        file: req.file,
+    }),
+    companyController.postTask,
+))
+
 
 module.exports = router;

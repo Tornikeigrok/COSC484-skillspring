@@ -1,6 +1,11 @@
 export const STATUS_LABELS: Record<string, string> = {
+  open: 'Open',
+  assigned: 'Assigned',
+  closed: 'Closed',
+  cancelled: 'Cancelled',
   awaiting_agreement: 'Agreement required',
   in_progress: 'In progress',
+  in_review: 'In review',
   submitted: 'Awaiting review',
   changes_requested: 'Changes requested',
   validation_failed: 'Archive checks failed',

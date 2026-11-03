@@ -1,9 +1,8 @@
-export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
+export const DIFFICULTIES = ['easy', 'medium'] as const;
 
 export const DIFFICULTY_LABELS: Record<(typeof DIFFICULTIES)[number], string> = {
   easy: 'Easy',
   medium: 'Medium',
-  hard: 'Hard',
 };
 
 // matches the task_type enum in db_schema.sql

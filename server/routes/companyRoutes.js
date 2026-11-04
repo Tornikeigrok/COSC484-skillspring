@@ -91,7 +91,14 @@ router.post('/post-task', requireVerified, postTaskLimiter, upload.single('file'
         file: req.file,
     }),
     companyController.postTask,
-))
+));
+
+router.get('/task-assets/:id', createHandler(
+    (req) => ({
+        id: req.params.id,
+    }),
+    companyController.taskDetails,
+));
 
 
 module.exports = router;

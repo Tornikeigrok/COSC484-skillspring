@@ -1,26 +1,28 @@
-import type { Task } from '../../../lib/types';
 import { DIFFICULTIES } from '../../../constants/tasks';
 import type { TaskSort } from '../../../constants/tasks';
+import type { AvailableTask } from '../hooks';
 
-// Client-side stand-in for the GET /tasks filters while the page uses sample data.
+// Client-side search, category filter and sort over the tasks GET /api/tasks returned.
 export function filterTasks(
-  tasks: Task[],
+  tasks: AvailableTask[],
   { q, category, sort }: { q: string; category: string; sort: TaskSort },
-): Task[] {
+): AvailableTask[] {
   const needle = q.toLowerCase();
-  const rank = (task: Task) => DIFFICULTIES.indexOf(task.difficulty as never);
+  const rank = (task: AvailableTask) => DIFFICULTIES.indexOf(task.difficulty);
+  // tasks without an estimate sort last under "shortest first"
+  const hours = (task: AvailableTask) => task.estimated_hours ?? Infinity;
   return tasks
-    .filter((task) => !category || task.category === category)
+    .filter((task) => !category || task.task_type === category)
     .filter(
       (task) =>
         !needle ||
-        [task.title, task.description, task.company.name, ...task.skills].some((text) =>
+        [task.title, task.description, task.Company.name].some((text) =>
           text.toLowerCase().includes(needle),
         ),
     )
     .sort((a, b) => {
-      if (sort === 'shortest') return a.estimated_hours - b.estimated_hours;
+      if (sort === 'shortest') return hours(a) - hours(b);
       if (sort === 'easiest') return rank(a) - rank(b);
-      return b.createdAt.localeCompare(a.createdAt);
+      return b.created_at.localeCompare(a.created_at);
     });
 }

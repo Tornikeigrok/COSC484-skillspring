@@ -6,19 +6,13 @@ import { DIFFICULTY_LABELS, TASK_TYPE_LABELS } from '../../constants/tasks';
 import { Dropdown, DropdownMenu, DropdownRadioGroup, DropdownRadioItem, DropdownTrigger } from '@/ui/radix-dropdown';
 import { cx } from '../../utils/cx';
 import { formatEstimate } from '../../utils/task-display';
+import { Icon } from './components/Icon';
+import RejectionNotice from './components/rejected-task-note';
 import styles from './BusinessTasksPage.module.css';
 import { FILTERS, ICONS, SORTS, matches, statusTone } from './constants/posted-tasks';
 import type { Filter, Sort } from './constants/posted-tasks';
 import { useFetchAllTasks } from './hooks';
 import type { CompanyTask } from './hooks';
-
-function Icon({ d }: { d: string }) {
-  return (
-    <svg className={styles.svg} viewBox="0 0 24 24" aria-hidden="true">
-      <path d={d} />
-    </svg>
-  );
-}
 
 function downloadCsv(tasks: CompanyTask[]) {
   const rows = [
@@ -59,6 +53,7 @@ function TaskRow({
   onToggle: () => void;
 }) {
   const proposals = task.proposal_count ?? 0;
+  const rejected = task.status === 'rejected';
   const action = matches('review', task.status)
     ? 'Review submission'
     : matches('open', task.status) && proposals
@@ -66,7 +61,7 @@ function TaskRow({
       : null;
 
   return (
-    <li className={cx(styles.row, selected && styles.rowSelected)}>
+    <li className={cx(styles.row, selected && styles.rowSelected, rejected && styles.rowRejected)}>
       <input
         type="checkbox"
         className={styles.check}
@@ -99,8 +94,8 @@ function TaskRow({
           )}
         </span>
       </div>
-      <span className={cx(styles.status, statusTone(task.status))}>
-        {STATUS_LABELS[task.status] ?? task.status}
+      <span className={cx(styles.status, rejected ? styles.statusRejected : statusTone(task.status))}>
+        {rejected ? 'Rejected' : (STATUS_LABELS[task.status] ?? task.status)}
       </span>
       {action ? (
         <Link className={styles.action} to={taskUrl(task)} tabIndex={-1}>
@@ -112,6 +107,7 @@ function TaskRow({
           •••
         </span>
       )}
+      {rejected && <RejectionNotice reasons={task.rejected_reason ?? []} />}
     </li>
   );
 }

@@ -45,11 +45,31 @@ export interface CompanyTask {
     created_at: string;
     // pending proposals on this task; server to provide
     proposal_count?: number;
+    rejected_reason: string[];
 }
 
 export function useFetchAllTasks() {
     return useQuery({
         queryKey: ['company-tasks'],
         queryFn: () => apiRequest<CompanyTask[]>('/api/company/tasks', 'GET'),
+    })
+}
+
+export interface TaskAsset {
+    status: string;
+    TaskAsset: {
+        original_filename: string;
+        task_id: number;
+        file_type: string;
+        uploaded_at: string;
+    };
+}
+
+export function useTaskDetails(id: string | undefined) {
+    return useQuery({
+        queryKey: ['/api/company/task-assets', id],
+        queryFn: () =>
+            apiRequest<{ task_assets: TaskAsset | null }>(`/api/company/task-assets/${id}`, 'GET'),
+        enabled: !!id,
     })
 }

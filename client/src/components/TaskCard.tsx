@@ -6,7 +6,14 @@ import { categories } from '../lib/types';
 import { cx } from '../utils/cx';
 import { formatEstimate, initials } from '../utils/task-display';
 import styles from './TaskCard.module.css';
-import type { Task } from '../lib/types';
+import type { Company, Task } from '../lib/types';
+
+// only what the card renders, so API rows and full Task objects both fit
+type TaskCardTask = Pick<Task, 'id' | 'title' | 'description' | 'category' | 'difficulty' | 'status'> & {
+  company: Pick<Company, 'name' | 'verification_status'>;
+  estimated_hours: number | null;
+  skills?: string[];
+};
 
 const ICON = {
   width: 16,
@@ -20,7 +27,7 @@ const ICON = {
   'aria-hidden': true,
 } as const;
 
-export function TaskCard({ task, manage = false }: { task: Task; manage?: boolean }) {
+export function TaskCard({ task, manage = false }: { task: TaskCardTask; manage?: boolean }) {
   const [saved, setSaved] = useState(false);
   const tint = {
     '--tint-bg': `var(--category-${task.category}-bg, var(--color-brand-soft))`,
@@ -51,11 +58,13 @@ export function TaskCard({ task, manage = false }: { task: Task; manage?: boolea
             <Link to={href}>{task.title}</Link>
           </h2>
           <p className={styles.description}>{task.description}</p>
-          <ul className={styles.skills} aria-label="Skills">
-            {task.skills.map((skill) => (
-              <li key={skill}>{skill}</li>
-            ))}
-          </ul>
+          {task.skills?.length ? (
+            <ul className={styles.skills} aria-label="Skills">
+              {task.skills.map((skill) => (
+                <li key={skill}>{skill}</li>
+              ))}
+            </ul>
+          ) : null}
         </div>
         <div className={styles.meta}>
           <dl className={styles.facts}>
@@ -67,7 +76,7 @@ export function TaskCard({ task, manage = false }: { task: Task; manage?: boolea
                 </svg>
                 <span className={styles.srOnly}>Estimated time</span>
               </dt>
-              <dd>{formatEstimate(task.estimated_hours)}</dd>
+              <dd>{task.estimated_hours !== null ? formatEstimate(task.estimated_hours) : '—'}</dd>
             </div>
             <div>
               <dt>

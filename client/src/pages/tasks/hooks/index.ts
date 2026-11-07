@@ -23,3 +23,13 @@ export function useGetAllTasks() {
         queryFn: () => apiRequest<AvailableTask[]>('/api/tasks/', 'GET'),
     });
 }
+
+
+/* Get details about a specific task */
+export function useGetTaskDetails(id: string | undefined) {
+    return useQuery({
+        queryKey: ['student-available-task-details', id],
+        queryFn: () => apiRequest<AvailableTask>(`/api/tasks/${id}`, 'GET'),
+        enabled: !!id,
+    });
+}

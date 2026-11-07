@@ -14,6 +14,8 @@ import styles from './TasksPage.module.css';
 import { useGetAllTasks } from './hooks';
 
 
+
+
 export default function TasksPage() {
   const [params, setParams] = useSearchParams();
   const [error, setError] = useState<string>();
@@ -23,6 +25,8 @@ export default function TasksPage() {
   const sort: TaskSort = sortParam in TASK_SORTS ? (sortParam as TaskSort) : 'recent';
   const { data: allTasks = [], isPending, isError, error: loadError, refetch } = useGetAllTasks();
   const tasks = filterTasks(allTasks, { q, category, sort });
+
+  // Dont allow student to pick task without being verified
 
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);

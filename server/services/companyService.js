@@ -346,6 +346,10 @@ module.exports = {
 
         return { data: { fileStored: true, id: taskCreated.id }};
     },
+    /**
+     * 
+     * @param {*} id from tasks table, joined with task_assets 
+     */
     taskDetails: async (id) => {
         const testAsstes = await Task.findOne({
             attributes: ['status'],
@@ -357,5 +361,21 @@ module.exports = {
         })
        
         return { data: { task_assets: testAsstes }};
+    },
+    displayMyTasks: async (userId) => {
+        const company = await Company.findOne({
+            attributes: ['id'],
+            where: { user_id: userId },
+        });
+
+        const tasks = await Task.findAll({
+            where: { company_id: company.id }
+        });
+
+        if (!tasks) {
+            return { data: { tasks: 'No tasks' }}
+        }
+
+        return { data: { tasks }};
     },
 };

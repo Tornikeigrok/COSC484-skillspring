@@ -100,5 +100,11 @@ router.get('/task-assets/:id', createHandler(
     companyController.taskDetails,
 ));
 
+router.get('/my-tasks', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+    }),
+    companyController.getMyTasks,
+))
 
 module.exports = router;

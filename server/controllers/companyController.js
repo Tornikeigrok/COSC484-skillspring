@@ -28,4 +28,7 @@ module.exports = {
     taskDetails: async (input) => {
         return await companyService.taskDetails(input.id);
     },
+    getMyTasks: async (input) => {
+        return await companyService.displayMyTasks(input.userId);
+    },
 }

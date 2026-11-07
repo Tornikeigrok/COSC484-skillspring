@@ -1,4 +1,4 @@
-const { Task, Company } = require('../models');
+const { Task, Company, TaskAsset } = require('../models');
 const { ForbiddenError, NotFoundError, BadRequestError } = require('../utils/httpExceptions');
 const { ROLE } = require('../constants/authConstants');
 const { TASK_STATUS } = require('../constants/taskConstants');
@@ -7,6 +7,11 @@ const { checkTaskType, checkDifficulty } = require('../utils/taskUtils');
 const MAX_TASK_ID = 2147483647; // largest value the integer id column can hold
 
 const TASK_ATTRIBUTES = ['id', 'title', 'description', 'difficulty', 'estimated_hours', 'status', 'task_type', 'created_at'];
+
+const TASK_ASSETS_INCLUDE = {
+    model: TaskAsset,
+    attributes: ['original_filename', 'file_type'],
+}
 
 const COMPANY_INCLUDE = {
     model: Company,
@@ -84,7 +89,7 @@ module.exports = {
 
         const task = await Task.findByPk(taskId, {
             attributes: [...TASK_ATTRIBUTES, 'company_id'],
-            include: COMPANY_INCLUDE,
+            include: [COMPANY_INCLUDE, TASK_ASSETS_INCLUDE],
         });
         if (!task) {
             throw new NotFoundError('Task not found');

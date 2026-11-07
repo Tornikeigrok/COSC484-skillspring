@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
         Task.belongsTo(models.Company, { foreignKey: 'company_id' });
         Task.hasOne(models.TaskAsset, { foreignKey: 'task_id' });
+        Task.hasMany(models.Proposal, { foreignKey: 'task_id' });
     }
   }
   Task.init({

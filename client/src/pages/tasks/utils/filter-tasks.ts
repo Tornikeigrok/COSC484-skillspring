@@ -1,6 +1,7 @@
 import { DIFFICULTIES } from '../../../constants/tasks';
 import type { TaskSort } from '../../../constants/tasks';
 import type { AvailableTask } from '../hooks';
+import { TASK_TABS } from '../constants/discover';
 
 export interface TaskFilters {
   q: string;
@@ -51,4 +52,22 @@ export function recommendTasks(tasks: AvailableTask[], skills: string[], count: 
     )
     .slice(0, count)
     .map(({ task }) => task);
+}
+
+// at-a-glance numbers for the page header
+export function heroStats(tasks: AvailableTask[]) {
+  const companies = new Set(
+    tasks.filter((t) => t.Company.verification_status === 'verified').map((t) => t.Company.name),
+  );
+  const fresh = tasks.filter(TASK_TABS.new.match).length;
+  const estimates = tasks.flatMap((t) => (t.estimated_hours === null ? [] : [t.estimated_hours]));
+  const avg = estimates.length
+    ? Math.round(estimates.reduce((sum, h) => sum + h, 0) / estimates.length)
+    : null;
+  return [
+    { label: 'Open tasks', value: tasks.length },
+    { label: 'New this week', value: fresh },
+    { label: 'Verified companies', value: companies.size },
+    { label: 'Avg. effort', value: avg === null ? '—' : `${avg}h` },
+  ];
 }

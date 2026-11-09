@@ -26,7 +26,31 @@ export const PARAM = {
   sort: 'sort',
   type: 'type',
   difficulty: 'difficulty',
+  tech: 'tech',
 } as const;
+
+// checkbox filter groups in the left sidebar, each stored as a comma list in the URL
+export const FILTER_KEYS = ['type', 'difficulty', 'tech'] as const;
+export type FilterKey = (typeof FILTER_KEYS)[number];
+
+// tech filter options; the server will match these against task tech stacks
+export const TECHNOLOGIES = [
+  'React',
+  'TypeScript',
+  'JavaScript',
+  'Node.js',
+  'Express',
+  'Next.js',
+  'Python',
+  'Java',
+  'SQL',
+  'PostgreSQL',
+  'MongoDB',
+  'Docker',
+  'AWS',
+  'GraphQL',
+  'Tailwind CSS',
+] as const;
 
 export const RECOMMENDED_COUNT = 3;
 export const ASIDE_ID = 'discover-aside';

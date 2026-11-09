@@ -1,16 +1,17 @@
+import { useState } from 'react';
 import { DIFFICULTIES, DIFFICULTY_LABELS, TASK_TYPES, TASK_TYPE_LABELS } from '@/constants/tasks';
-import { ICONS } from '../constants/discover';
+import { ICONS, TECHNOLOGIES } from '../constants/discover';
+import type { FilterKey } from '../constants/discover';
 import { Svg } from './Svg';
 import styles from '../TasksPage.module.css';
 
 interface Props {
-  types: string[];
-  difficulties: string[];
-  onToggle: (key: 'type' | 'difficulty', value: string) => void;
+  selected: Record<FilterKey, string[]>;
+  onToggle: (key: FilterKey, value: string) => void;
   onClear: () => void;
 }
 
-const GROUPS = [
+const GROUPS: { key: FilterKey; title: string; options: (readonly [string, string])[] }[] = [
   {
     key: 'type',
     title: 'Task type',
@@ -21,11 +22,16 @@ const GROUPS = [
     title: 'Difficulty',
     options: DIFFICULTIES.map((d) => [d, DIFFICULTY_LABELS[d]] as const),
   },
-] as const;
+  {
+    key: 'tech',
+    title: 'Technologies',
+    options: TECHNOLOGIES.map((t) => [t, t] as const),
+  },
+];
 
-export function TaskFilters({ types, difficulties, onToggle, onClear }: Props) {
-  const selected = { type: types, difficulty: difficulties };
-  const active = types.length + difficulties.length > 0;
+export function TaskFilters({ selected, onToggle, onClear }: Props) {
+  const [techQuery, setTechQuery] = useState('');
+  const active = Object.values(selected).some((values) => values.length > 0);
 
   return (
     <aside className={styles.filters} aria-label="Filters">
@@ -38,27 +44,50 @@ export function TaskFilters({ types, difficulties, onToggle, onClear }: Props) {
         )}
       </div>
 
-      {GROUPS.map((group) => (
-        <details key={group.key} className={styles.filterGroup} open>
-          <summary>
-            {group.title}
-            <Svg d={ICONS.chevronDown} size={14} className={styles.filterChevron} />
-          </summary>
-          <fieldset>
-            <legend className={styles.srOnly}>{group.title}</legend>
-            {group.options.map(([value, label]) => (
-              <label key={value} className={styles.check}>
+      {GROUPS.map((group) => {
+        const isTech = group.key === 'tech';
+        const needle = techQuery.trim().toLowerCase();
+        const options = isTech
+          ? group.options.filter(([, label]) => label.toLowerCase().includes(needle))
+          : group.options;
+
+        return (
+          <details key={group.key} className={styles.filterGroup} open>
+            <summary>
+              {group.title}
+              <Svg d={ICONS.chevronDown} size={14} className={styles.filterChevron} />
+            </summary>
+
+            {isTech && (
+              <label className={styles.techSearch}>
+                <Svg d={ICONS.search} size={14} />
+                <span className={styles.srOnly}>Search technologies</span>
                 <input
-                  type="checkbox"
-                  checked={selected[group.key].includes(value)}
-                  onChange={() => onToggle(group.key, value)}
+                  type="search"
+                  value={techQuery}
+                  onChange={(e) => setTechQuery(e.target.value)}
+                  placeholder="Search tech…"
                 />
-                {label}
               </label>
-            ))}
-          </fieldset>
-        </details>
-      ))}
+            )}
+
+            <fieldset className={isTech ? styles.techList : undefined}>
+              <legend className={styles.srOnly}>{group.title}</legend>
+              {options.map(([value, label]) => (
+                <label key={value} className={styles.check}>
+                  <input
+                    type="checkbox"
+                    checked={selected[group.key].includes(value)}
+                    onChange={() => onToggle(group.key, value)}
+                  />
+                  {label}
+                </label>
+              ))}
+              {!options.length && <p className={styles.noTech}>No matches</p>}
+            </fieldset>
+          </details>
+        );
+      })}
     </aside>
   );
 }

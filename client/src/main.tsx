@@ -8,7 +8,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false, staleTime: 15_000 }, mutations: { retry: false } },
+  defaultOptions: { queries: { retry: false, staleTime: 60_000 }, mutations: { retry: false } },
 });
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -22,4 +22,13 @@ module.exports = {
     resendVerification: async (input) => {
         return await companyService.resendVerification(input.userId);
     },
+    postTask: async (input) => {
+        return await companyService.postTask(input.userId, input.taskTitle, input.taskDesc, input.taskType, input.difficulty, input.estimated_hours, input.file);
+    },
+    taskDetails: async (input) => {
+        return await companyService.taskDetails(input.id);
+    },
+    getMyTasks: async (input) => {
+        return await companyService.displayMyTasks(input.userId);
+    },
 }

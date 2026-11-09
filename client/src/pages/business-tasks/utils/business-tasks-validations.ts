@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { DIFFICULTIES, TASK_TYPES } from '../../../constants/tasks';
+import { unzipSync } from 'fflate';
 
+async function oversizedFile(zip: File, limit = 10 * 1024 * 1024) {
+    const culprit: string[] = [];
+    unzipSync(new Uint8Array(await zip.arrayBuffer()), {
+      filter: (f) => {
+        if (f.originalSize > limit) culprit.push(f.name);
+        return false; // dont decompress
+      }
+    });
+    return culprit;
+  }
 
 const taskFields = {
   title: z
@@ -11,14 +22,23 @@ const taskFields = {
     .string()
     .min(30, 'description must be at least 30 characters')
     .max(10000, 'description must be at most 10,000 characters'),
-  task_type: z.enum(TASK_TYPES),
+  task_type: z.enum(TASK_TYPES, 'please select a task type'),
   difficulty: z.enum(DIFFICULTIES),
   estimated_hours: z.coerce
     .number('enter the estimated hours')
     .int('enter a whole number of hours')
     .min(1, 'estimated hours must be at least 1')
     .max(500, 'estimated hours must be at most 500'),
-  files: z.file('please upload a zip file'),
+  file: z.file('please upload a zip file')
+        .max(50 * 1024 * 1024, 'zip must be under 50 MB')
+        .superRefine(async (zip, ctx) => {
+           try {
+            const tooBig = await oversizedFile(zip);
+            if (tooBig.length) ctx.addIssue({ code: 'custom', message: `${tooBig.join(', ')} is larger than 10 MB` });
+           } catch (err) {
+             ctx.addIssue({ code: 'custom', message: 'not a valid zip file' });
+           }
+        }),
 };
 
 export const createTaskSchema = z.object(taskFields);

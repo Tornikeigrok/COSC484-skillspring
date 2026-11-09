@@ -59,10 +59,22 @@ const verificationValidatorLimiter = rateLimit({
     message: { message: 'Too many verification requests, try again later' },
 });
 
+const postTaskLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: 3,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    passOnStoreError: false,
+    store: openRedisStore('post-task'),
+    keyGenerator: (req) => String(req.user.userId), // per user
+    message: { message: 'Too many task requests, try again later' },
+});
+
 module.exports = { 
     passwordResetLimiter,
     registerRateLimiter,
     loginRateLimiter,
     verificationLimiter,
-    verificationValidatorLimiter
+    verificationValidatorLimiter,
+    postTaskLimiter,
 };

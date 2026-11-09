@@ -2,16 +2,18 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { categories } from '../../lib/types';
-import { Button, EmptyState, FieldError } from '../../components/ui';
+import { EmptyState, ErrorMessage, FieldError, Loading } from '../../components/ui';
 import { TaskCard } from '../../components/TaskCard';
 import { TASK_SORTS } from '../../constants/tasks';
 import type { TaskSort } from '../../constants/tasks';
 import links from '../../styles/links.module.css';
 import { cx } from '../../utils/cx';
-import { sampleTasks } from './constants/sample-tasks';
 import { filterTasks } from './utils/filter-tasks';
 import { taskSearchSchema } from './utils/tasks-validations';
 import styles from './TasksPage.module.css';
+import { useGetAllTasks } from './hooks';
+
+
 
 
 export default function TasksPage() {
@@ -21,7 +23,10 @@ export default function TasksPage() {
   const category = params.get('category') || '';
   const sortParam = params.get('sort') || '';
   const sort: TaskSort = sortParam in TASK_SORTS ? (sortParam as TaskSort) : 'recent';
-  const tasks = filterTasks(sampleTasks.items, { q, category, sort });
+  const { data: allTasks = [], isPending, isError, error: loadError, refetch } = useGetAllTasks();
+  const tasks = filterTasks(allTasks, { q, category, sort });
+
+  // Dont allow student to pick task without being verified
 
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);
@@ -80,7 +85,7 @@ export default function TasksPage() {
           </p>
         </div>
         <p className={styles.heroCount}>
-          <strong>{sampleTasks.total}</strong>
+          <strong>{allTasks.length}</strong>
           <span>open projects from verified companies</span>
         </p>
       </section>
@@ -109,10 +114,14 @@ export default function TasksPage() {
           </select>
         </label>
       </div>
-      {tasks.length ? (
+      {isPending ? (
+        <Loading />
+      ) : isError ? (
+        <ErrorMessage error={loadError} retry={() => refetch()} />
+      ) : tasks.length ? (
         <div className={styles.list}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} task={{ ...task, id: String(task.id), category: task.task_type, company: task.Company }} />
           ))}
         </div>
       ) : (
@@ -128,35 +137,6 @@ export default function TasksPage() {
         >
           Try a different search or category.
         </EmptyState>
-      )}
-      {sampleTasks.pages > 1 && (
-        <nav className={styles.pager} aria-label="Task pages">
-          <Button
-            variant="secondary"
-            disabled={sampleTasks.page <= 1}
-            onClick={() => {
-              const next = new URLSearchParams(params);
-              next.set('page', String(sampleTasks.page - 1));
-              setParams(next);
-            }}
-          >
-            Previous
-          </Button>
-          <span>
-            Page {sampleTasks.page} of {sampleTasks.pages}
-          </span>
-          <Button
-            variant="secondary"
-            disabled={sampleTasks.page >= sampleTasks.pages}
-            onClick={() => {
-              const next = new URLSearchParams(params);
-              next.set('page', String(sampleTasks.page + 1));
-              setParams(next);
-            }}
-          >
-            Next
-          </Button>
-        </nav>
       )}
     </>
   );

@@ -10,11 +10,13 @@ const baseUrl = import.meta.env.VITE_API_URL ?? '';
  * @param body - optional, as some methods do not send a body
  */
 export async function apiRequest<T>(path: string, method: MethodType, body?: unknown): Promise<T> {
+  // File shouldn't be stringified as it would be signified to {}
+  const isForm = body instanceof FormData;
   const res = await fetch(`${baseUrl}${path}`, {
     method,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: body === undefined ? null : JSON.stringify(body),
+    headers: isForm ? {} : { 'Content-Type': 'application/json' },
+    body: body === undefined ? null : isForm ? body : JSON.stringify(body),
   });
 
   const data = await res.json().catch(() => undefined);

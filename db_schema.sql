@@ -132,8 +132,9 @@ CREATE TABLE proposals (
     id SERIAL PRIMARY KEY,
     task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    message TEXT NOT NULL,
-    estimated_hours INTEGER,
+    approach TEXT NOT NULL,
+    proposed_hours INTEGER,
+    questions TEXT,
     status proposal_status DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE (task_id, student_id)   -- PREVENT DUPLICATE PROPOSALS

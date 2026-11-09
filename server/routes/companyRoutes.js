@@ -3,9 +3,11 @@ const router = express.Router();
 const companyController = require('../controllers/companyController');
 const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/userMiddleware');
+const requireVerified = require('../middleware/verifiedMiddleware');
 const { createHandler } = require('../utils/handler');
 const { ROLE } = require('../constants/authConstants');
-const { verificationLimiter, verificationValidatorLimiter } = require('../middleware/rateLimiter');
+const { verificationLimiter, verificationValidatorLimiter, postTaskLimiter } = require('../middleware/rateLimiter');
+const multer = require('multer');
 
 // Everything under /api/company needs a valid login AND the company role.
 router.use(authMiddleware, roleMiddleware(ROLE.COMPANY));
@@ -71,5 +73,38 @@ router.post('/resend-verification', verificationLimiter, createHandler(
     }),
     companyController.resendVerification,
 ));
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 },
+});
+
+// Only verified companies can publish tasks. It runs first so an unverified company is rejected before the upload is read.
+router.post('/post-task', requireVerified, postTaskLimiter, upload.single('file'), createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        taskTitle: req.body.taskTitle,
+        taskDesc: req.body.taskDesc,
+        taskType: req.body.taskType,
+        difficulty: req.body.difficulty,
+        estimated_hours: req.body.estimated_hours,
+        file: req.file,
+    }),
+    companyController.postTask,
+));
+
+router.get('/task-assets/:id', createHandler(
+    (req) => ({
+        id: req.params.id,
+    }),
+    companyController.taskDetails,
+));
+
+router.get('/my-tasks', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+    }),
+    companyController.getMyTasks,
+))
 
 module.exports = router;

@@ -6,6 +6,8 @@ module.exports = (sequelize, DataTypes) => {
   class Task extends Model {
     static associate(models) {
         Task.belongsTo(models.Company, { foreignKey: 'company_id' });
+        Task.hasOne(models.TaskAsset, { foreignKey: 'task_id' });
+        Task.hasMany(models.Proposal, { foreignKey: 'task_id' });
     }
   }
   Task.init({
@@ -37,6 +39,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM(...Object.values(TASK_TYPE)),
       allowNull: false,
     },
+    rejected_reason: {
+      type: DataTypes.ARRAY(DataTypes.TEXT),
+      allowNull: true
+    }
   }, {
     sequelize,
     modelName: 'Task',

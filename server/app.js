@@ -26,10 +26,12 @@ app.set('trust proxy', 1);
 const authRoutes = require('../server/routes/authRoutes');
 const studentRoutes = require('../server/routes/studentRoutes');
 const companyRoutes = require('../server/routes/companyRoutes');
+const taskRoutes = require('../server/routes/taskRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/company', companyRoutes);
+app.use('/api/tasks', taskRoutes);
 
 
 if (require.main === module) {

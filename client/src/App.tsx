@@ -59,8 +59,11 @@ export default function App() {
           <Route path="/register" element={<AuthPage register />} />
           <Route element={<AuthProtection />}>
             <Route element={<TaskLayout />}>
-              <Route path="/tasks" element={<TasksPage />} />
-              <Route path="/tasks/:id" element={<TaskDetailPage />} />
+              {/* Task marketplace is student-only; companies get redirected to /business */}
+              <Route element={<RequireAuth role="student" />}>
+                <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/tasks/:id" element={<TaskDetailPage />} />
+              </Route>
               <Route path="/profiles/:id" element={<ProfilePage />} />
             </Route>
           </Route>

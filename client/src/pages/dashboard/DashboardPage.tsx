@@ -20,6 +20,7 @@ import {
   sampleDashboardTasks,
 } from './constants/sample-dashboard';
 import { getActiveAssignments } from './utils/get-active-assignments';
+import { StudentOverview } from './components/StudentOverview';
 import styles from './DashboardPage.module.css';
 
 
@@ -36,6 +37,21 @@ export default function DashboardPage() {
   const proposals = sampleDashboardProposals;
   const items = sampleDashboardAssignments;
   const active = getActiveAssignments(items);
+
+  if (profile.role === 'student') {
+    return (
+      <StudentOverview
+        firstName={profile.first_name}
+        skills={profile.Student.skills}
+        counts={{
+          active: active.length,
+          proposals: proposals.length,
+          completed: items.filter((a) => a.status === 'completed').length,
+        }}
+      />
+    );
+  }
+
   const stats = student
     ? [
         ['Active projects', active.length],

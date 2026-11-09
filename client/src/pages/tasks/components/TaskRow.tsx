@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { buttonClass } from '@/components/ui';
 import { DIFFICULTY_LABELS, TASK_TYPE_LABELS } from '@/constants/tasks';
@@ -6,11 +5,13 @@ import { cx } from '@/utils/cx';
 import { formatEstimate, initials } from '@/utils/task-display';
 import { ICONS, tint } from '../constants/discover';
 import type { AvailableTask } from '../hooks';
+import { useSavedTasks } from '../hooks/use-saved-tasks';
 import { Svg } from './Svg';
 import styles from '../TasksPage.module.css';
 
 export function TaskRow({ task }: { task: AvailableTask }) {
-  const [saved, setSaved] = useState(false);
+  const { isSaved, toggle } = useSavedTasks();
+  const saved = isSaved(task.id);
   const href = `/tasks/${task.id}`;
 
   return (
@@ -57,7 +58,7 @@ export function TaskRow({ task }: { task: AvailableTask }) {
           className={cx(styles.save, saved && styles.saveActive)}
           aria-pressed={saved}
           aria-label={`Save ${task.title}`}
-          onClick={() => setSaved(!saved)}
+           onClick={() => toggle(task.id)}
         >
           <Svg d={ICONS.bookmark} size={18} />
         </button>

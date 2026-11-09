@@ -11,5 +11,11 @@ export const proposalSchema = z.object({
     .int('enter a whole number of hours')
     .min(1, 'estimated hours must be at least 1')
     .max(500, 'estimated hours must be at most 500'),
+  questions: z
+    .string()
+    .trim()
+    .max(2000, 'questions must be at most 2,000 characters')
+    .optional(),
+
 });
 export type ProposalFormData = z.infer<typeof proposalSchema>;

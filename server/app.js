@@ -27,11 +27,13 @@ const authRoutes = require('../server/routes/authRoutes');
 const studentRoutes = require('../server/routes/studentRoutes');
 const companyRoutes = require('../server/routes/companyRoutes');
 const taskRoutes = require('../server/routes/taskRoutes');
+const proposalRoutes = require('../server/routes/proposalRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/proposals', proposalRoutes);
 
 
 if (require.main === module) {

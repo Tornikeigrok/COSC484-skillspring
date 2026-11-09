@@ -347,7 +347,6 @@ module.exports = {
         return { data: { fileStored: true, id: taskCreated.id }};
     },
     /**
-     * 
      * @param {*} id from tasks table, joined with task_assets 
      */
     taskDetails: async (id) => {

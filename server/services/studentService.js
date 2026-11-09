@@ -187,5 +187,3 @@ module.exports = {
         return await sendEmailVerif(userId, pending.email, pending.university, pending.gradYear, pending.bio);
     },
 }
-
-// Middleware that checks that each party is verified. But endpoints need to exist first so we can apply middleware to them

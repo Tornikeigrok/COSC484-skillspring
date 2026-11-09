@@ -6,6 +6,7 @@ import { cx } from '../../utils/cx';
 import { formatEstimate, initials } from '../../utils/task-display';
 import styles from './TaskDetailPage.module.css';
 import { useGetTaskDetails } from './hooks';
+import { useCurrentUser } from '../dashboard/hooks/use-profile';
 
 const ICON = {
   width: 20,
@@ -26,12 +27,15 @@ export default function TaskDetailPage() {
   const { data: task, isPending, error, refetch } = useGetTaskDetails(id);
   const [tab, setTab] = useState<(typeof TABS)[number]>('Details');
   const [saved, setSaved] = useState(false);
+  const { data: user } = useCurrentUser();
 
   if (isPending) return <Loading />;
   if (error) return <ErrorMessage error={error} retry={refetch} />;
 
   const company = task.Company;
   const verified = company?.verification_status === 'verified';
+  // backend 403s proposals from unverified students, so gate the button here
+  const mustVerify = user?.role === 'student' && user.Student.verification_status !== 'verified';
 
   return (
     <>
@@ -44,7 +48,9 @@ export default function TaskDetailPage() {
 
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>{TASK_TYPE_LABELS[task.task_type]?.label ?? task.task_type}</p>
+          <p className={styles.eyebrow}>
+            {TASK_TYPE_LABELS[task.task_type]?.label ?? task.task_type}
+          </p>
           <h1 className={styles.title}>{task.title}</h1>
           {company && (
             <p className={styles.company}>
@@ -74,18 +80,44 @@ export default function TaskDetailPage() {
               <path d="M6 3h12v18l-6-4-6 4z" />
             </svg>
           </button>
-          {task.status === 'open' ? (
+          {task.status !== 'open' ? (
+            <Badge>No longer accepting proposals</Badge>
+          ) : mustVerify ? (
+            <button
+              type="button"
+              className={buttonClass('primary', styles.submit)}
+              disabled
+              aria-describedby="verify-hint"
+            >
+              <svg {...ICON} width={16} height={16}>
+                <rect x="5" y="11" width="14" height="10" rx="2" />
+                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+              </svg>
+              Submit a proposal
+            </button>
+          ) : (
             <Link className={buttonClass('primary', styles.submit)} to={`/tasks/${id}/propose`}>
               Submit a proposal
               <svg {...ICON} width={16} height={16}>
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
             </Link>
-          ) : (
-            <Badge>No longer accepting proposals</Badge>
           )}
         </div>
       </header>
+
+      {task.status === 'open' && mustVerify && (
+        <p id="verify-hint" className={styles.verifyHint}>
+          <svg {...ICON} width={16} height={16}>
+            <path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z" />
+          </svg>
+          <span>
+            Verify your identity to submit proposals. Companies only review proposals from verified
+            students.
+          </span>
+          <Link to="/verification">Verify now →</Link>
+        </p>
+      )}
 
       <div className={styles.tabs} role="tablist">
         {TABS.map((name) => (
@@ -171,7 +203,9 @@ export default function TaskDetailPage() {
                   </svg>
                   Estimated effort
                 </dt>
-                <dd>{task.estimated_hours !== null ? formatEstimate(task.estimated_hours) : '—'}</dd>
+                <dd>
+                  {task.estimated_hours !== null ? formatEstimate(task.estimated_hours) : '—'}
+                </dd>
               </div>
               <div>
                 <dt>

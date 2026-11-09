@@ -8,6 +8,7 @@ import { useCurrentUser } from '../pages/dashboard/hooks/use-profile';
 import { useAuthenticateUser } from '../auth/use-authenticate-user';
 import { BUSINESS_LINKS, STUDENT_LINKS } from '../constants/navigation';
 import { useLogout } from '../pages/auth/hooks/use-auth-hooks';
+import * as Menu from '@radix-ui/react-dropdown-menu';
 import linkStyles from '../styles/links.module.css';
 import styles from './AppLayout.module.css';
 export function RequireAuth({ role }: { role?: Role }) {
@@ -34,88 +35,97 @@ export function AppLayout() {
 
   const student = user.role === 'student';
   const links = student ? STUDENT_LINKS : BUSINESS_LINKS;
+  const unverified =
+    (student ? user.Student : user.Company).verification_status !== 'verified';
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    cx(styles.navLink, isActive ? styles.navLinkActive : styles.navLinkIdle);
+    cx(styles.navLink, isActive && styles.navLinkActive);
 
+  const signOut = () =>
+    logout.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.clear();
+        navigate('/');
+      },
+    });
 
   return (
     <div className={styles.shell}>
       <a className={linkStyles.skipLink} href="#main-content">
         Skip to content
       </a>
-      <aside className={cx(styles.sidebar, menu ? styles.sidebarOpen : styles.sidebarClosed)}>
-        <Brand className={styles.sidebarBrand} role={user?.role} />
-        <p className={styles.workspaceLabel}>
-          {student ? 'Student workspace' : 'Business workspace'}
-        </p>
-        <nav aria-label="Workspace" className={styles.nav}>
-          {links.map(([path, label]) => (
-            <NavLink
-              key={path}
-              to={path}
-              end
-              onClick={() => setMenu(false)}
-              className={navLinkClass}
-            >
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className={styles.sidebarFooter}>
-          {(user.role === 'student' ? user.Student : user.Company).verification_status !== 'verified' && (
-            <NavLink to="/verification" onClick={() => setMenu(false)} className={navLinkClass}>
-              Identity verification
-            </NavLink>
-          )}
-          <NavLink to="/settings" onClick={() => setMenu(false)} className={navLinkClass}>
-            Account settings
-          </NavLink>
-          <p className={styles.tagline}>
-            Small projects.
-            <br />
-            Meaningful experience.
-          </p>
-        </div>
-      </aside>
-      <div className={styles.content}>
-        <header className={styles.header}>
-          <Button
-            variant="ghost"
-            className={styles.menuButton}
-            aria-expanded={menu}
-            aria-label="Toggle navigation"
-            onClick={() => setMenu(!menu)}
+      <header className={styles.topbar}>
+        <div className={styles.topbarInner}>
+          <Brand className={styles.brand} role={user.role} />
+
+          <nav
+            aria-label="Workspace"
+            className={cx(styles.nav, menu && styles.navOpen)}
           >
-            ☰
-          </Button>
-          <span className={styles.greeting}>Your next step starts here.</span>
+            {links.map(([path, label]) => (
+              <NavLink
+                key={path}
+                to={path}
+                end
+                onClick={() => setMenu(false)}
+                className={navLinkClass}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+
           <div className={styles.account}>
-            <Link to="/profile" className={styles.avatar} aria-label="View profile">
-              {user.first_name[0]}
-              {user.last_name[0]}
-            </Link>
-            <span className={styles.userName}>{user.first_name}</span>
+            <Menu.Root>
+              <Menu.Trigger className={styles.accountTrigger}>
+                <span className={styles.avatar}>
+                  {user.first_name[0]}
+                  {user.last_name[0]}
+                </span>
+                <span className={styles.userName}>{user.first_name}</span>
+                <span aria-hidden="true" className={styles.chevron}>▾</span>
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Content align="end" sideOffset={8} className={styles.accountMenu}>
+                  <Menu.Item className={styles.menuItem} onSelect={() => navigate('/profile')}>
+                    View profile
+                  </Menu.Item>
+                  <Menu.Item className={styles.menuItem} onSelect={() => navigate('/settings')}>
+                    Account settings
+                  </Menu.Item>
+                  {unverified && (
+                    <Menu.Item className={styles.menuItem} onSelect={() => navigate('/verification')}>
+                      Identity verification
+                    </Menu.Item>
+                  )}
+                  <Menu.Separator className={styles.menuSeparator} />
+                  <Menu.Item
+                    className={styles.menuItem}
+                    disabled={logout.isPending}
+                    onSelect={signOut}
+                  >
+                    {logout.isPending ? 'Logging out…' : 'Log out'}
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Portal>
+            </Menu.Root>
+
             <Button
               variant="ghost"
-              busy={logout.isPending}
-              onClick={() =>
-                logout.mutate(undefined, {
-                  onSuccess: () => {
-                    queryClient.clear();
-                    navigate('/');
-                  },
-                })
-              }
+              className={styles.menuButton}
+              aria-expanded={menu}
+              aria-label="Toggle navigation"
+              onClick={() => setMenu(!menu)}
             >
-              Log out
+              ☰
             </Button>
           </div>
-        </header>
-        <main id="main-content" className={styles.main}>
-          <Outlet />
-        </main>
-        <footer className={styles.footer}>SkillSpring · Real work. Real growth.</footer>
-      </div>
+        </div>
+      </header>
+
+      <main id="main-content" className={styles.main}>
+        <Outlet />
+      </main>
+      <footer className={styles.footer}>SkillSpring · Real work. Real growth.</footer>
     </div>
   );
 }

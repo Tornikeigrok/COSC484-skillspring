@@ -1,130 +1,136 @@
 .shell {
   display: flex;
+  flex-direction: column;
   min-height: 100dvh;
 }
 
-.sidebar {
+/* Top bar */
+.topbar {
   position: sticky;
   top: 0;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  width: 250px;
-  height: 100dvh;
-  padding-block: 30px;
-  padding-inline: 22px;
-  border-right: 1px solid #e1e6f0;
-  background-color: var(--color-surface);
-}
-
-.sidebarBrand {
-  padding-left: 8px;
-  font-size: 22px;
-}
-
-.sidebarBrand > span:first-child {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-}
-
-.workspaceLabel {
-  margin: 40px 0 14px 12px;
-  color: var(--color-muted);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.nav {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.navLink {
-  display: block;
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.navLinkIdle {
-  color: var(--color-muted);
-}
-
-.navLinkActive {
-  background-color: var(--color-info);
-  color: var(--color-brand);
-}
-
-.sidebarFooter {
-  margin-top: auto;
-}
-
-.tagline {
-  margin-top: 28px;
-  margin-inline: 12px;
-  padding-top: 22px;
-  border-top: 1px solid #e1e6f0;
-  color: var(--color-muted);
-  font-size: 12px;
-  line-height: 1.8;
-}
-
-.content {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 83px;
-  padding: 16px 40px;
+  z-index: 20;
   border-bottom: 1px solid #e1e6f0;
   background-color: var(--color-surface);
 }
 
-.menuButton {
-  display: none;
+.topbarInner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  max-width: 1400px;
+  height: 72px;
+  margin-inline: auto;
+  padding-inline: 40px;
 }
 
-.greeting {
-  color: var(--color-muted);
+.brand {
+  flex-shrink: 0;
+  font-size: 22px;
+}
+
+.nav {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-self: stretch;
+  gap: 8px;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-ink);
   font-size: 14px;
-  line-height: var(--line-height-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.navLinkActive {
+  border-bottom-color: var(--color-brand);
+  font-weight: 600;
 }
 
 .account {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.accountTrigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 4px 4px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
 }
 
 .avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 9999px;
   background-color: var(--color-info);
   color: var(--color-brand);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: var(--line-height-xs);
 }
 
 .userName {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+}
+
+.chevron {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.accountMenu {
+  z-index: 40;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.menuItem {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.menuItem[data-highlighted] {
+  background-color: var(--color-canvas);
+}
+
+.menuItem[data-disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.menuSeparator {
+  height: 1px;
+  margin: 6px 0;
+  background-color: var(--color-line);
+}
+
+.menuButton {
+  display: none;
 }
 
 .main {
@@ -132,7 +138,7 @@
   width: 100%;
   max-width: 1400px;
   margin-inline: auto;
-  padding: 42px 40px 64px;
+  padding: 32px 40px 64px;
 }
 
 .footer {
@@ -165,45 +171,34 @@
   padding-block: 40px;
 }
 
+/* on hover */
 @media (hover: hover) {
   .navLink:hover {
-    background-color: var(--color-canvas);
+    color: var(--color-brand);
   }
 }
 
-@media (width < 1200px) {
-  .sidebar {
-    width: 218px;
-    padding-inline: 16px;
+@media (width < 1100px) {
+  .topbarInner {
+    gap: 16px;
+    padding-inline: 24px;
+  }
+
+  .navLink {
+    padding: 0 10px;
+    font-size: 13px;
   }
 
   .main {
-    padding-inline: 26px;
+    padding-inline: 24px;
   }
 }
 
-@media (width < 767px) {
-  .shell {
-    display: block;
-  }
-
-  .sidebarClosed {
-    display: none;
-  }
-
-  .sidebarOpen {
-    position: fixed;
-    top: 73px;
-    left: 0;
-    z-index: 30;
-    width: min(300px, 85vw);
-    height: calc(100dvh - 73px);
-    box-shadow: 10px 10px 30px #15223b22;
-  }
-
-  .header {
-    min-height: 73px;
-    padding: 12px 18px;
+/* collapses the full menu into a hamburger menu*/
+@media (width < 860px) {
+  .topbarInner {
+    height: 64px;
+    padding-inline: 18px;
   }
 
   .menuButton {
@@ -212,27 +207,54 @@
     font-size: 22px;
   }
 
-  .greeting {
-    flex: 1;
-    font-size: 11px;
-  }
-
   .account {
-    gap: 8px;
+    margin-left: auto;
   }
 
-  .userName {
+  .userName,
+  .chevron {
     display: none;
   }
 
+  .nav {
+    display: none;
+  }
+
+  .navOpen {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 18px 18px;
+    border-bottom: 1px solid #e1e6f0;
+    background: var(--color-surface);
+    box-shadow: 0 10px 30px #15223b22;
+  }
+
+  .navOpen .navLink {
+    padding: 12px;
+    border-bottom: 0;
+    border-radius: 10px;
+  }
+
+  .navOpen .navLinkActive {
+    background-color: var(--color-info);
+    color: var(--color-brand);
+  }
+
   .main {
-    padding: 28px 18px 40px;
+    padding: 24px 18px 40px;
   }
 
   .footer {
     padding-inline: 18px;
   }
+}
 
+@media (width < 767px) {
   .publicHeader {
     gap: 16px;
     padding: 18px;
@@ -264,11 +286,5 @@
 
   .publicMain {
     width: calc(100% - 36px);
-  }
-}
-
-@media (width < 380px) {
-  .greeting {
-    display: none;
   }
 }

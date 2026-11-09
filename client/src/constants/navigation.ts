@@ -1,14 +1,14 @@
 export const STUDENT_LINKS: [string, string][] = [
-  ['/student', 'Overview'],
-  ['/tasks', 'Discover tasks'],
-  ['/student/proposals', 'My proposals'],
-  ['/assignments', 'My work'],
-  ['/profile', 'Verified experience'],
+  ['/student', 'Home'],
+  ['/tasks', 'Discover'],
+  ['/student/proposals', 'Proposals'],
+  ['/assignments', 'My Work'],
+  ['/profile', 'Profile'],
 ];
 export const BUSINESS_LINKS: [string, string][] = [
-  ['/business', 'Overview'],
-  ['/business/tasks', 'My tasks'],
-  ['/business/tasks/new', 'Post a task'],
+  ['/business', 'Home'],
+  ['/business/tasks', 'My Tasks'],
+  ['/business/tasks/new', 'Post a Task'],
   ['/assignments', 'Assignments'],
-  ['/profile', 'Company profile'],
+  ['/profile', 'Company Profile'],
 ];

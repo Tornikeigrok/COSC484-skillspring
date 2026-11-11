@@ -65,7 +65,7 @@ export function AppLayout() {
               <NavLink
                 key={path}
                 to={path}
-                end
+                end={path === '/student' || path === '/business'}
                 onClick={() => setMenu(false)}
                 className={navLinkClass}
               >

@@ -7,8 +7,7 @@ export const STUDENT_LINKS: [string, string][] = [
 ];
 export const BUSINESS_LINKS: [string, string][] = [
   ['/business', 'Home'],
-  ['/business/tasks', 'My Tasks'],
-  ['/business/tasks/new', 'Post a Task'],
+  ['/business/tasks', 'Tasks'],
   ['/assignments', 'Assignments'],
   ['/profile', 'Company Profile'],
 ];

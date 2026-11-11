@@ -1,4 +1,4 @@
-const { sequelize, User, Company, Task, TaskAsset, } = require('../models');
+const { sequelize, User, Company, Task, TaskAsset, Student } = require('../models');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
 const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
 const bcrypt = require('bcrypt');
@@ -376,5 +376,20 @@ module.exports = {
         }
 
         return { data: { tasks }};
+    },
+    fetchProfileForView: async (studentId) => {
+        const userInfo = await Student.findByPk(studentId, 
+            { 
+                attributes: ['user_id', 'github_url', 'university', 'graduation_year', 'verification_status', 'skills'], 
+                include: {
+                    model: User,
+                    attributes: ['first_name', 'last_name', 'role'],
+                }
+            },
+        );
+
+        console.log('data sent', userInfo);
+
+        return { data: userInfo };
     },
 };

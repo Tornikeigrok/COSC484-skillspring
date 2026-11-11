@@ -105,6 +105,13 @@ router.get('/my-tasks', createHandler(
         userId: req.user.userId,
     }),
     companyController.getMyTasks,
-))
+));
+
+router.get('/student-profile/:id', createHandler(
+    (req) => ({
+        studentId: req.params.id,
+    }),
+    companyController.fetchProfileForView,
+));
 
 module.exports = router;

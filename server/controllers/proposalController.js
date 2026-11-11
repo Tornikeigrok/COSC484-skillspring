@@ -10,4 +10,7 @@ module.exports = {
     myProposals: async (input) => {
         return await proposalService.myProposals(input.userId);
     },
+    companyTaskProposals: async (input) => {
+        return await proposalService.companyTaskProposals(input.taskId);
+    },
 };

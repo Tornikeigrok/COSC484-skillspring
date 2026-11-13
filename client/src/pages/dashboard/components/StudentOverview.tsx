@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { EmptyState, ErrorMessage, Loading, buttonClass } from '@/components/ui';
 import links from '@/styles/links.module.css';
 import { cx } from '@/utils/cx';
-import { Svg } from '@/pages/tasks/components/Svg';
-import { TaskRow } from '@/pages/tasks/components/TaskRow';
-import { ICONS } from '@/pages/tasks/constants/discover';
-import { useGetAllTasks } from '@/pages/tasks/hooks';
-import { useSavedTasks } from '@/pages/tasks/hooks/use-saved-tasks';
-import { recommendTasks } from '@/pages/tasks/utils/filter-tasks';
-import discover from '@/pages/tasks/TasksPage.module.css';
+import { Svg } from '@/pages/discover/components/Svg';
+import { TaskRow } from '@/pages/discover/components/TaskRow';
+import { ICONS } from '@/pages/discover/constants/discover';
+import { useGetAllTasks } from '@/pages/discover/hooks';
+import { useSavedTasks } from '@/pages/discover/hooks/use-saved-tasks';
+import { recommendTasks } from '@/pages/discover/utils/filter-tasks';
+import discover from '@/pages/discover/DiscoverPage.module.css';
 import {
   FOR_YOU_COUNT,
   OVERVIEW_ICONS,

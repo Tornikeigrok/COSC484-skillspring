@@ -8,7 +8,7 @@ import type { AvailableTask } from '../hooks';
 import { useSavedTasks } from '../hooks/use-saved-tasks';
 import { CompanyLogo } from './CompanyLogo';
 import { Svg } from './Svg';
-import styles from '../TasksPage.module.css';
+import styles from '../DiscoverPage.module.css';
 
 export function TaskRow({ task }: { task: AvailableTask }) {
   const { isSaved, toggle } = useSavedTasks();

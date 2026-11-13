@@ -14,7 +14,7 @@ import type { AvailableTask } from '../hooks';
 import { recommendTasks } from '../utils/filter-tasks';
 import { CompanyLogo } from './CompanyLogo';
 import { Svg } from './Svg';
-import styles from '../TasksPage.module.css';
+import styles from '../DiscoverPage.module.css';
 
 export function DiscoverAside({ tasks }: { tasks: AvailableTask[] }) {
   const { data: profile } = useFetchProfile();

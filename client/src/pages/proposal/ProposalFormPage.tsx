@@ -22,7 +22,7 @@ import { Icon } from '../business-tasks/components/Icon';
 import { FORM_ICONS, TOOLBAR } from '../business-tasks/constants/create-task';
 import { applyTool } from '../business-tasks/utils/markdown-editor';
 import styles from './ProposalFormPage.module.css';
-import { useGetTaskDetails } from '@/pages/tasks/hooks/index';
+import { useGetTaskDetails } from '@/pages/discover/hooks/index';
 import { proposalSchema, ProposalFormData } from './utils/proposal-validations';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';

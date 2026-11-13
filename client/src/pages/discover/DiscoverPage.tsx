@@ -22,12 +22,12 @@ import type { FilterKey, TaskTab } from './constants/discover';
 import { useGetAllTasks } from './hooks';
 import { filterTasks, heroStats } from './utils/filter-tasks';
 import { taskSearchSchema } from './utils/tasks-validations';
-import styles from './TasksPage.module.css';
+import styles from './DiscoverPage.module.css';
 
 const IS_MAC = typeof navigator !== 'undefined' && /Mac/i.test(navigator.userAgent);
 const list = (value: string | null) => (value ? value.split(',') : []);
 
-export default function TasksPage() {
+export default function DiscoverPage() {
   const [params, setParams] = useSearchParams();
   const [error, setError] = useState<string>();
   const searchRef = useRef<HTMLInputElement>(null);

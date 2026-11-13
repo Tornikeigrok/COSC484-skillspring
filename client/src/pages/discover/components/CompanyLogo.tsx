@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { cx } from '@/utils/cx';
 import { initials } from '@/utils/task-display';
 import { logoSrc } from '../constants/discover';
-import styles from '../TasksPage.module.css';
+import styles from '../DiscoverPage.module.css';
 
 // brand logo for well-known companies, initials for everyone else (or if the logo fails to load)
 export function CompanyLogo({

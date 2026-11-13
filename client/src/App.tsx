@@ -12,8 +12,8 @@ import { Toaster } from 'sonner';
 
 /* Must be lazy loaded until they are needed.  */
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
-const TasksPage = lazy(() => import('./pages/tasks/TasksPage'));
-const TaskDetailPage = lazy(() => import('./pages/tasks/TaskDetailPage'));
+const DiscoverPage = lazy(() => import('./pages/discover/DiscoverPage'));
+const TaskDetailPage = lazy(() => import('./pages/discover/TaskDetailPage'));
 const ProposalFormPage = lazy(() => import('./pages/proposal/ProposalFormPage'));
 const ProposalsPage = lazy(() => import('./pages/proposal/ProposalsPage'));
 const BusinessTasksPage = lazy(() => import('./pages/business-tasks/BusinessTasksPage'));
@@ -61,7 +61,7 @@ export default function App() {
             <Route element={<TaskLayout />}>
               {/* Task marketplace is student-only; companies get redirected to /business */}
               <Route element={<RequireAuth role="student" />}>
-                <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/tasks" element={<DiscoverPage />} />
                 <Route path="/tasks/:id" element={<TaskDetailPage />} />
               </Route>
               <Route path="/profiles/:id" element={<ProfilePage />} />

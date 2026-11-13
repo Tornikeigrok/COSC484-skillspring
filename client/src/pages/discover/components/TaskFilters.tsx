@@ -3,7 +3,7 @@ import { DIFFICULTIES, DIFFICULTY_LABELS, TASK_TYPES, TASK_TYPE_LABELS } from '@
 import { ICONS, TECHNOLOGIES } from '../constants/discover';
 import type { FilterKey } from '../constants/discover';
 import { Svg } from './Svg';
-import styles from '../TasksPage.module.css';
+import styles from '../DiscoverPage.module.css';
 
 interface Props {
   selected: Record<FilterKey, string[]>;

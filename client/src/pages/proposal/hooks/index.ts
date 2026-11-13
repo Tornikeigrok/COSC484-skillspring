@@ -1,6 +1,6 @@
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api-request";
-import type { AvailableTask } from "@/pages/tasks/hooks";
+import type { AvailableTask } from "@/pages/discover/hooks";
 
 interface ProposalBody {
     taskId: string,

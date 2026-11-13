@@ -22,3 +22,12 @@ export const OVERVIEW_ICONS = {
   send: 'M22 2 11 13M22 2l-7 20-4-9-9-4z',
   checkCircle: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8.5 12l2.5 2.5 4.5-5',
 } as const;
+
+export const RECENT_TASKS_COUNT = 3;
+
+// business home stat tiles, values come from the company's tasks
+export const COMPANY_OVERVIEW_STATS = [
+  { key: 'open', label: 'Open tasks', hint: 'Accepting proposals', icon: 'folder' },
+  { key: 'proposals', label: 'Proposals received', hint: 'Waiting on you', icon: 'send' },
+  { key: 'review', label: 'Awaiting review', hint: 'Submissions to check', icon: 'checkCircle' },
+] as const;

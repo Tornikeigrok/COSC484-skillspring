@@ -194,7 +194,7 @@ export default function BusinessTasksPage() {
               </button>
             )}
             <Link className={buttonClass('dark', styles.newTask)} to="/business/tasks/new">
-              + New Task
+              + Post a Task
             </Link>
           </div>
         }

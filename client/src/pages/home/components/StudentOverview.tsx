@@ -17,17 +17,17 @@ import {
   STUDENT_OVERVIEW_TABS,
 } from '../constants/overview';
 import type { StudentOverviewStatKey, StudentOverviewTab } from '../constants/overview';
+import { sampleHomeAssignments, sampleHomeProposals } from '../constants/sample-home';
+import { getActiveAssignments } from '../utils/get-active-assignments';
 import { getGreeting } from '../utils/get-greeting';
 import styles from '../HomePage.module.css';
 
 export function StudentOverview({
   firstName,
   skills,
-  counts,
 }: {
   firstName: string;
   skills: string[];
-  counts: Record<StudentOverviewStatKey, number>;
 }) {
   const [tab, setTab] = useState<StudentOverviewTab>('forYou');
   const { data: allTasks = [], isPending, isError, error, refetch } = useGetAllTasks();
@@ -37,6 +37,14 @@ export function StudentOverview({
     tab === 'forYou'
       ? recommendTasks(allTasks, skills, STUDENT_FOR_YOU_COUNT)
       : allTasks.filter((task) => isSaved(task.id));
+
+  // sample data until the student assignments/proposals endpoints exist
+  const assignments = sampleHomeAssignments;
+  const counts: Record<StudentOverviewStatKey, number> = {
+    active: getActiveAssignments(assignments).length,
+    proposals: sampleHomeProposals.length,
+    completed: assignments.filter((a) => a.status === 'completed').length,
+  };
 
   return (
     <div className={styles.page}>

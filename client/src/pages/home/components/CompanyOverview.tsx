@@ -11,7 +11,12 @@ import { ICONS, tint } from '@/pages/discover/constants/discover';
 import discover from '@/pages/discover/DiscoverPage.module.css';
 import { matches } from '@/pages/business-tasks/constants/posted-tasks';
 import { useFetchAllTasks } from '@/pages/business-tasks/hooks';
-import { COMPANY_OVERVIEW_STATS, OVERVIEW_ICONS, COMPANY_RECENT_TASKS_COUNT } from '../constants/overview';
+import {
+  COMPANY_OVERVIEW_STATS,
+  COMPANY_RECENT_TASKS_COUNT,
+  OVERVIEW_ICONS,
+} from '../constants/overview';
+import type { CompanyOverviewStatKey } from '../constants/overview';
 import { getGreeting } from '../utils/get-greeting';
 import styles from '../HomePage.module.css';
 
@@ -28,7 +33,7 @@ export function CompanyOverview({
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, COMPANY_RECENT_TASKS_COUNT);
 
-  const counts = {
+  const counts: Record<CompanyOverviewStatKey, number> = {
     open: tasks.filter((task) => matches('open', task.status)).length,
     proposals: tasks.reduce((sum, task) => sum + (task.proposal_count ?? 0), 0),
     review: tasks.filter((task) => matches('review', task.status)).length,

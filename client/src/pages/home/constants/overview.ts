@@ -30,6 +30,8 @@ export const COMPANY_OVERVIEW_STATS = [
   { key: 'review', label: 'Awaiting review', hint: 'Submissions to check', icon: 'checkCircle' },
 ] as const;
 
+export type CompanyOverviewStatKey = (typeof COMPANY_OVERVIEW_STATS)[number]['key'];
+
 /* ---------- Shared ---------- */
 
 export const OVERVIEW_ICONS = {

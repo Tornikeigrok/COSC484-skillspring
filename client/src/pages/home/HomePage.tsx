@@ -15,27 +15,27 @@ import links from '../../styles/links.module.css';
 import text from '../../styles/text.module.css';
 import { useCurrentUser } from './hooks/use-profile';
 import {
-  sampleDashboardAssignments,
-  sampleDashboardProposals,
-  sampleDashboardTasks,
-} from './constants/sample-dashboard';
+  sampleHomeAssignments,
+  sampleHomeProposals,
+  sampleHomeTasks,
+} from './constants/sample-home';
 import { getActiveAssignments } from './utils/get-active-assignments';
 import { StudentOverview } from './components/StudentOverview';
-import styles from './DashboardPage.module.css';
+import styles from './HomePage.module.css';
 
 
 
 
-export default function DashboardPage() {
+export default function HomePage() {
   const { data: profile, isPending, error, refetch } = useCurrentUser();
   if (isPending) return <Loading />;
   if (!profile) return <ErrorMessage error={error} retry={() => refetch()} />;
 
 
   const student = profile.role === 'student';
-  const tasks = sampleDashboardTasks;
-  const proposals = sampleDashboardProposals;
-  const items = sampleDashboardAssignments;
+  const tasks = sampleHomeTasks;
+  const proposals = sampleHomeProposals;
+  const items = sampleHomeAssignments;
   const active = getActiveAssignments(items);
 
   if (profile.role === 'student') {

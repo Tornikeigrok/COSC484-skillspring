@@ -1,5 +1,5 @@
 import { Loading } from '../../components/ui';
-import { useCurrentUser } from '../dashboard/hooks/use-profile';
+import { useCurrentUser } from '../home/hooks/use-profile';
 import StudentSettingsPage from './StudentSettingsPage';
 import CompanySettingsPage from './CompanySettingsPage';
 

@@ -10,7 +10,7 @@ import {
   StatusBadge,
   buttonClass,
 } from '../../components/ui';
-import { useCurrentUser } from '../dashboard/hooks/use-profile';
+import { useCurrentUser } from '../home/hooks/use-profile';
 import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import links from '../../styles/links.module.css';

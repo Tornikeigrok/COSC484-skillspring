@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Button, Field, Input, Textarea, buttonClass } from '../../components/ui';
 import { toFieldErrors, withoutError } from '../../utils/form-errors';
 import type { FieldErrors } from '../../utils/form-errors';
-import { useCurrentUser } from '../dashboard/hooks/use-profile';
+import { useCurrentUser } from '../home/hooks/use-profile';
 import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import notice from '../../styles/notice.module.css';

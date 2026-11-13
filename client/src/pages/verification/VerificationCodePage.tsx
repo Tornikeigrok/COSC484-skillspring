@@ -10,7 +10,7 @@ import { VerificationShell } from './components/VerificationShell';
 import { Icon } from './components/Icon';
 import { ICONS, STEPS } from './constants/verification';
 import { useValidateCode, useValidateCompanyCode } from './hooks';
-import { useCurrentUser } from '../dashboard/hooks/use-profile';
+import { useCurrentUser } from '../home/hooks/use-profile';
 
 const LENGTH = 6;
 

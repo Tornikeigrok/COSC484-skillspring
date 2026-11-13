@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useFetchProfile, type StudentProfile } from '@/pages/dashboard/hooks/use-profile';
+import { useFetchProfile, type StudentProfile } from '@/pages/home/hooks/use-profile';
 import { DIFFICULTY_LABELS } from '@/constants/tasks';
 import { cx } from '@/utils/cx';
 import {

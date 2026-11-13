@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { StudentProfile } from '@/pages/dashboard/hooks/use-profile';
+import type { StudentProfile } from '@/pages/home/hooks/use-profile';
 
 const DAY = 86_400_000;
 

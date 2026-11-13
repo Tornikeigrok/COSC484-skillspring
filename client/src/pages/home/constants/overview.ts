@@ -8,7 +8,7 @@ export const OVERVIEW_TABS = {
 
 export type OverviewTab = keyof typeof OVERVIEW_TABS;
 
-// stat tiles under the hero, values are filled in by DashboardPage
+// stat tiles under the hero, values are filled in by HomePage
 export const OVERVIEW_STATS = [
   { key: 'active', label: 'Active projects', hint: 'In progress', to: '/assignments', icon: 'folder' },
   { key: 'proposals', label: 'Proposals sent', hint: 'Awaiting response', to: '/student/proposals', icon: 'send' },

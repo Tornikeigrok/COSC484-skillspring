@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Badge, Button, Card, Field, FieldError, Input, Loading, PageHeading, Textarea } from '../../components/ui';
-import { useFetchCompanyProfile } from '../dashboard/hooks/use-profile';
+import { useFetchCompanyProfile } from '../home/hooks/use-profile';
 import styles from './SettingsPage.module.css';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { Role } from '../lib/types';
 import { Brand, Button, Loading, buttonClass } from '../components/ui';
 import { cx } from '../utils/cx';
-import { useCurrentUser } from '../pages/dashboard/hooks/use-profile';
+import { useCurrentUser } from '../pages/home/hooks/use-profile';
 import { useAuthenticateUser } from '../auth/use-authenticate-user';
 import { BUSINESS_LINKS, STUDENT_LINKS } from '../constants/navigation';
 import { useLogout } from '../pages/auth/hooks/use-auth-hooks';

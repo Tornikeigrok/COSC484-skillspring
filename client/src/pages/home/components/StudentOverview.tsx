@@ -18,7 +18,7 @@ import {
 } from '../constants/overview';
 import type { OverviewStatKey, OverviewTab } from '../constants/overview';
 import { getGreeting } from '../utils/get-greeting';
-import styles from '../DashboardPage.module.css';
+import styles from '../HomePage.module.css';
 
 export function StudentOverview({
   firstName,

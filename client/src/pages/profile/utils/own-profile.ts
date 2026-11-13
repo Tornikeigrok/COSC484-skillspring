@@ -1,5 +1,5 @@
 import type { ProfileResponse } from '../../../lib/types';
-import type { CompanyProfile, StudentProfile } from '../../dashboard/hooks/use-profile';
+import type { CompanyProfile, StudentProfile } from '../../home/hooks/use-profile';
 
 export function toOwnProfile(me: StudentProfile | CompanyProfile): ProfileResponse {
   return {

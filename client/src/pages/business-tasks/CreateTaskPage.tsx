@@ -15,7 +15,7 @@ import { Icon } from './components/Icon';
 import { FORM_ICONS, TITLE_MAX, TOOLBAR, TYPE_ICONS } from './constants/create-task';
 import { formatSize } from './utils/format-size';
 import { applyTool, runHistory } from './utils/markdown-editor';
-import { useFetchCompanyProfile } from '../dashboard/hooks/use-profile';
+import { useFetchCompanyProfile } from '../home/hooks/use-profile';
 
 
 

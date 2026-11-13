@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Badge, Button, Card, Field, FieldError, Input, Loading, PageHeading, Textarea } from '../../components/ui';
-import { useFetchProfile } from '../dashboard/hooks/use-profile';
+import { useFetchProfile } from '../home/hooks/use-profile';
 import styles from './SettingsPage.module.css';
 import { studentProfileSchema, changePasswordSchema } from './utils/settings-validations';
 import type { StudentProfileFormData, ChangePasswordFormData } from './utils/settings-validations';

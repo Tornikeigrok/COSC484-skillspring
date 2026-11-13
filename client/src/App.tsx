@@ -11,7 +11,7 @@ import { Toaster } from 'sonner';
 
 
 /* Must be lazy loaded until they are needed.  */
-const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
+const HomePage = lazy(() => import('./pages/home/HomePage'));
 const DiscoverPage = lazy(() => import('./pages/discover/DiscoverPage'));
 const TaskDetailPage = lazy(() => import('./pages/discover/TaskDetailPage'));
 const ProposalFormPage = lazy(() => import('./pages/proposal/ProposalFormPage'));
@@ -91,14 +91,14 @@ export default function App() {
             </Route>
             <Route element={<RequireAuth role="student" />}>
               <Route element={<AppLayout />}>
-                <Route path="/student" element={<DashboardPage />} />
+                <Route path="/student" element={<HomePage />} />
                 <Route path="/student/proposals" element={<ProposalsPage />} />
                 <Route path="/tasks/:id/propose" element={<ProposalFormPage />} />
               </Route>
             </Route>
             <Route element={<RequireAuth role="company" />}>
               <Route element={<AppLayout />}>
-                <Route path="/business" element={<DashboardPage />} />
+                <Route path="/business" element={<HomePage />} />
                 <Route path="/business/tasks" element={<BusinessTasksPage />} />
                 <Route path="/business/tasks/new" element={<CreateTaskPage />} />
                 <Route path="/business/tasks/:id/proposals" element={<ManageTaskPage />} />

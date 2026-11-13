@@ -6,7 +6,7 @@ import { cx } from '../../utils/cx';
 import { formatEstimate, initials } from '../../utils/task-display';
 import styles from './TaskDetailPage.module.css';
 import { useGetTaskDetails } from './hooks';
-import { useCurrentUser } from '../dashboard/hooks/use-profile';
+import { useCurrentUser } from '../home/hooks/use-profile';
 
 const ICON = {
   width: 20,

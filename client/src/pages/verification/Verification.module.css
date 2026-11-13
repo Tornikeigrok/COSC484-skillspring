@@ -44,3 +44,320 @@
   color: var(--color-muted);
   font-size: 13px;
 }
+
+/* ---------- two-panel shell ---------- */
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr);
+  max-width: 1120px;
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 44px 40px 0;
+  overflow: hidden;
+  border-right: 1px solid var(--color-line);
+  background:
+    radial-gradient(circle at 100% 100%, rgb(79 70 229 / 14%), transparent 55%),
+    linear-gradient(180deg, #f7f7ff, #f1f2ff);
+}
+
+.eyebrow {
+  margin-bottom: 18px;
+  color: var(--color-brand);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sideTitle {
+  margin-bottom: 14px;
+  font-size: clamp(26px, 2.6vw, 34px);
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+.sideText {
+  margin-bottom: 32px;
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* stepper */
+
+.steps {
+  display: grid;
+  gap: 22px;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--color-muted);
+  font-size: 15px;
+}
+
+/* connector line down to the next dot */
+.step:not(:last-child)::after {
+  position: absolute;
+  top: 26px;
+  left: 11px;
+  width: 2px;
+  height: 22px;
+  border-radius: 1px;
+  background-color: #d5d9ea;
+  content: '';
+}
+
+.step.done:not(:last-child)::after {
+  background-color: var(--color-brand);
+}
+
+.dot {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #d5d9ea;
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  color: #fff;
+}
+
+.stepIcon {
+  flex-shrink: 0;
+}
+
+.current {
+  color: var(--color-navy);
+  font-weight: 600;
+}
+
+.current .dot {
+  border-color: var(--color-brand);
+  background-color: var(--color-brand);
+  box-shadow: 0 0 0 4px rgb(79 70 229 / 18%);
+}
+
+.done {
+  color: var(--color-navy);
+}
+
+.done .dot {
+  border-color: var(--color-brand);
+  background-color: var(--color-brand);
+}
+
+/* decorative id card */
+
+.art {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 200px;
+  padding-top: 40px;
+}
+
+.idCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px 18px;
+  width: 240px;
+  margin-bottom: -18px;
+  padding: 24px 24px 40px;
+  border: 1px solid rgb(255 255 255 / 90%);
+  border-radius: 20px;
+  background: linear-gradient(150deg, rgb(255 255 255 / 95%), rgb(232 233 255 / 85%));
+  box-shadow:
+    0 24px 48px rgb(79 70 229 / 16%),
+    -14px -10px 0 -2px rgb(255 255 255 / 55%);
+  transform: rotate(-8deg);
+}
+
+.idBadge {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(140deg, #8b8cf6, var(--color-brand));
+  color: #fff;
+}
+
+.idLines {
+  display: grid;
+  gap: 8px;
+}
+
+.idLines i,
+.idLine,
+.idLineShort {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #c9cbf5;
+}
+
+.idLines i:last-child {
+  width: 70%;
+}
+
+.idLine {
+  grid-column: 1 / -1;
+}
+
+.idLineShort {
+  grid-column: 1 / -1;
+  width: 45%;
+}
+
+/* right panel */
+
+.main {
+  padding: 44px 48px 40px;
+}
+
+.mainHead {
+  margin-bottom: 28px;
+}
+
+.mainHead h2 {
+  margin-bottom: 6px;
+  font-size: 28px;
+  letter-spacing: -0.015em;
+}
+
+.mainHead p {
+  color: var(--color-muted);
+  font-size: 15px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* inputs with a leading icon */
+
+.withIcon {
+  position: relative;
+}
+
+.withIcon > input,
+.withIcon > textarea {
+  padding-left: 44px;
+}
+
+.fieldIcon {
+  position: absolute;
+  top: 14px;
+  left: 15px;
+  z-index: 1;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.triggerLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.triggerIcon {
+  color: var(--color-muted);
+}
+
+.counter {
+  margin-top: 6px;
+  color: var(--color-muted);
+  font-size: 12px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-line);
+}
+
+.cancel {
+  border-color: var(--color-line);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (width < 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    padding: 32px 24px 28px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .sideText {
+    margin-bottom: 24px;
+  }
+
+  .steps {
+    grid-auto-flow: column;
+    gap: 12px;
+  }
+
+  .step {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .step:not(:last-child)::after,
+  .stepIcon,
+  .art {
+    display: none;
+  }
+
+  .main {
+    padding: 28px 24px;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}

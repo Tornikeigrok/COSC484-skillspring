@@ -144,11 +144,7 @@ export default function TasksPage() {
       </section>
 
       <div className={cx(styles.layout, !asideOpen && styles.layoutCollapsed)}>
-        <TaskFilters
-          selected={filters}
-          onToggle={toggle}
-          onClear={clearFilters}
-        />
+        <TaskFilters selected={filters} onToggle={toggle} onClear={clearFilters} />
 
         <section className={styles.results} aria-label="Tasks">
           <div className={styles.toolbar}>

@@ -9,8 +9,17 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  border-bottom: 1px solid #e1e6f0;
-  background-color: var(--color-surface);
+  border-bottom: 1px solid rgb(225 230 240 / 70%);
+  background-color: rgb(255 255 255 / 40%);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+}
+
+/* no blur support: keep the bar readable */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .topbar {
+    background-color: var(--color-surface);
+  }
 }
 
 .topbarInner {

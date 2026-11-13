@@ -1,15 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import {
-  Button,
-  Card,
-  Field,
-  Input,
-  PageHeading,
-  Select,
-  StatusBadge,
-  Textarea,
-} from '../../components/ui';
+import { Button, Field, Input, Textarea, buttonClass } from '../../components/ui';
 import { toFieldErrors, withoutError } from '../../utils/form-errors';
 import type { FieldErrors } from '../../utils/form-errors';
 import { useCurrentUser } from '../dashboard/hooks/use-profile';
@@ -19,17 +10,25 @@ import notice from '../../styles/notice.module.css';
 import { verificationSchema } from './utils/verification-validations';
 import { useSendVerificationEmail, useUniversityMatches, useSendCompanyVerifEmail } from './hooks';
 import { useDebounce } from './utils/verification-validations';
-import styles from './VerificationPage.module.css';
+import styles from './Verification.module.css';
+import { VerificationShell } from './components/VerificationShell';
+import { Icon } from './components/Icon';
+import { BIO_MAX, GRAD_YEARS, ICONS } from './constants/verification';
 import { CompanyVerificationForm } from './CompanyVerificationForm';
-import { Dropdown, DropdownMenu, DropdownRadioGroup, DropdownRadioItem, DropdownTrigger } from '@/ui/radix-dropdown';
+import {
+  Dropdown,
+  DropdownMenu,
+  DropdownRadioGroup,
+  DropdownRadioItem,
+  DropdownTrigger,
+} from '@/ui/radix-dropdown';
 import { Navigate, useNavigate } from 'react-router-dom';
-
-const GRAD_YEARS = ['2026', '2027', '2028', '2029', '2030'];
 
 export default function VerificationPage() {
   const navigate = useNavigate();
   const { data: user } = useCurrentUser();
-  const status = (user?.role === 'student' ? user.Student : user?.Company)?.verification_status ?? 'unverified';
+  const status =
+    (user?.role === 'student' ? user.Student : user?.Company)?.verification_status ?? 'unverified';
   const [errors, setErrors] = useState<FieldErrors>({});
   const sendVerification = useSendVerificationEmail();
 
@@ -45,7 +44,7 @@ export default function VerificationPage() {
     // if everything goes thru successfuly, we make the request and direct to Code page
     // Only navigate to code page if email is sent successfuly
     setErrors({});
-    sendVerification.mutate(result.data, { onSuccess: () => navigate('/verification-code')});
+    sendVerification.mutate(result.data, { onSuccess: () => navigate('/verification-code') });
   }
 
   const [universityPicker, setUniversityPicker] = useState('');
@@ -60,6 +59,7 @@ export default function VerificationPage() {
   }, [debouncedUni]);
 
   const [gradYear, setGradYear] = useState('');
+  const [bioLength, setBioLength] = useState(0);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const matches = mutateData ?? [];
@@ -73,7 +73,13 @@ export default function VerificationPage() {
   }
 
   // Company Verification func
-  const { mutate: companyVerifEmail, isPending: companyVerifEmailPending, error: companyVerifEmailError, isError: companyVerifEmailErrorExists, reset: resetCompanyVerif } = useSendCompanyVerifEmail();
+  const {
+    mutate: companyVerifEmail,
+    isPending: companyVerifEmailPending,
+    error: companyVerifEmailError,
+    isError: companyVerifEmailErrorExists,
+    reset: resetCompanyVerif,
+  } = useSendCompanyVerifEmail();
 
   const company = user?.role === 'company';
 
@@ -81,54 +87,65 @@ export default function VerificationPage() {
   if (status === 'verified') return <Navigate to={company ? '/business' : '/student'} replace />;
 
   return (
-    <div className={layout.narrowPage}>
-      <PageHeading
-        eyebrow="BUILDING TRUST"
-        title={company ? 'Business verification' : 'Student verification'}
-        description={
-          company
-            ? 'Verify your company before posting tasks.'
-            : 'You must verify your role before being taking on the tasks.'
-        }
-      />
-      <Card>
-        <div className={layout.headerRow}>
-          <h2>Verification status</h2>
-          <StatusBadge status={status} />
-        </div>
-        {company ? (
-          <CompanyVerificationForm
-            firstName={user.first_name}
-            lastName={user.last_name}
-            onSubmit={(data) => { companyVerifEmail({ workEmail: data.workEmail, website: data.website }, 
-              { onSuccess: () => navigate('/verification-code')})}}
-            serverError={companyVerifEmailError?.message}
-            isPending={companyVerifEmailPending}
-            isError={companyVerifEmailErrorExists}
-            onEdit={resetCompanyVerif}
-          />
-        ) : (
-          <form
-            className={layout.formStack}
-            onSubmit={submit}
-            onChange={(e) => {
-              setErrors(withoutError(errors, e.target));
-              if (sendVerification.isError) sendVerification.reset();
-            }}
-            noValidate
-          >
-            <Field label="Full name" id="full_name" error={errors.full_name}>
-              <Input id="full_name" name="full_name" placeholder="Jane Doe" required />
-            </Field>
+    <VerificationShell
+      role={company ? 'company' : 'student'}
+      step={0}
+      title="Your information"
+      description={
+        company
+          ? 'Tell us where you work. We’ll email a code to confirm it.'
+          : 'Provide your academic details to start the verification process.'
+      }
+    >
+      {company ? (
+        <CompanyVerificationForm
+          firstName={user.first_name}
+          lastName={user.last_name}
+          onSubmit={(data) => {
+            companyVerifEmail(
+              { workEmail: data.workEmail, website: data.website },
+              { onSuccess: () => navigate('/verification-code') },
+            );
+          }}
+          onCancel={() => navigate(-1)}
+          serverError={companyVerifEmailError?.message}
+          isPending={companyVerifEmailPending}
+          isError={companyVerifEmailErrorExists}
+          onEdit={resetCompanyVerif}
+        />
+      ) : (
+        <form
+          className={styles.form}
+          onSubmit={submit}
+          onChange={(e) => {
+            setErrors(withoutError(errors, e.target));
+            if (sendVerification.isError) sendVerification.reset();
+          }}
+          noValidate
+        >
+          <Field label="Full name" id="full_name" error={errors.full_name}>
+            <div className={styles.withIcon}>
+              <Icon d={ICONS.user} className={styles.fieldIcon} />
+              <Input
+                id="full_name"
+                name="full_name"
+                placeholder="Jane Doe"
+                autoComplete="name"
+                required
+              />
+            </div>
+          </Field>
+
+          <div className={layout.fieldGrid}>
             <Field label="University" id="university" error={errors.university}>
-              <div className={styles.combobox}>
+              <div className={cx(styles.combobox, styles.withIcon)}>
+                <Icon d={ICONS.university} className={styles.fieldIcon} />
                 <Input
                   value={universityPicker}
                   onChange={(e) => {
                     setUniversityPicker(e.target.value);
                     setOpen(true);
                     setActive(-1);
-                    if (e.target.value.trim()) setUniversityPicker(e.target.value);
                   }}
                   onFocus={() => setOpen(true)}
                   onBlur={() => setOpen(false)}
@@ -185,10 +202,14 @@ export default function VerificationPage() {
                 )}
               </div>
             </Field>
+
             <Field label="Graduation year" id="graduation_year" error={errors.gradYear}>
               <Dropdown>
                 <DropdownTrigger id="graduation_year" data-placeholder={gradYear ? undefined : ''}>
-                  {gradYear || 'Select a year'}
+                  <span className={styles.triggerLabel}>
+                    <Icon d={ICONS.calendar} className={styles.triggerIcon} />
+                    {gradYear || 'Select a year'}
+                  </span>
                 </DropdownTrigger>
                 <DropdownMenu>
                   <DropdownRadioGroup
@@ -208,42 +229,69 @@ export default function VerificationPage() {
               </Dropdown>
               <input type="hidden" name="gradYear" value={gradYear} />
             </Field>
-            <Field label="University email" id="university_email" error={errors.uniEmail}>
+          </div>
+
+          <Field
+            label="University email"
+            id="university_email"
+            error={errors.uniEmail}
+            hint="We’ll send a 6-digit code here."
+          >
+            <div className={styles.withIcon}>
+              <Icon d={ICONS.mail} className={styles.fieldIcon} />
               <Input
                 id="university_email"
                 name="uniEmail"
                 type="email"
                 placeholder="jane.doe@university.edu"
+                autoComplete="email"
                 required
               />
-            </Field>
-            <Field label="Bio (optional)" id="bio" error={errors.bio}>
+            </div>
+          </Field>
+
+          <Field label="Bio (optional)" id="bio" error={errors.bio}>
+            <div className={styles.withIcon}>
+              <Icon d={ICONS.file} className={styles.fieldIcon} />
               <Textarea
                 id="bio"
                 name="bio"
                 rows={4}
-                placeholder="A few lines about what you study and build."
+                maxLength={BIO_MAX}
+                placeholder="A few lines about what you study and build…"
+                onChange={(e) => setBioLength(e.target.value.length)}
               />
-            </Field>
-            {sendVerification.isError && (
-              <p className={cx(notice.notice, notice.error)}>{sendVerification.error.message}</p>
-            )}
-            {sendVerification.isSuccess && (
-              <p className={cx(notice.notice, notice.success)}>Check your university email for a code.</p>
-            )}
+            </div>
+            <p className={styles.counter}>
+              {bioLength.toLocaleString()} / {BIO_MAX.toLocaleString()}
+            </p>
+          </Field>
+
+          {sendVerification.isError && (
+            <p className={cx(notice.notice, notice.error)} role="alert">
+              {sendVerification.error.message}
+            </p>
+          )}
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={buttonClass('secondary', styles.cancel)}
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </button>
             <Button
               type="submit"
-              disabled={
-                sendVerification.isPending ||
-                sendVerification.isError ||
-                Object.keys(errors).length > 0
-              }
+              busy={sendVerification.isPending}
+              disabled={sendVerification.isError || Object.keys(errors).length > 0}
             >
-              Request verification
+              Continue
+              <Icon d={ICONS.arrow} size={16} />
             </Button>
-          </form>
-        )}
-      </Card>
-    </div>
+          </div>
+        </form>
+      )}
+    </VerificationShell>
   );
 }

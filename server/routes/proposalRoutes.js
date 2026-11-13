@@ -28,4 +28,11 @@ router.get('/my-proposals', createHandler(
     proposalController.myProposals,
 ));
 
+router.get('/company-task-proposals/:taskId', createHandler(
+    (req) => ({
+        taskId: req.params.taskId,
+    }),
+    proposalController.companyTaskProposals,
+));
+
 module.exports = router;

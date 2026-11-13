@@ -2,10 +2,17 @@ import { Link } from 'react-router-dom';
 import { useFetchProfile, type StudentProfile } from '@/pages/dashboard/hooks/use-profile';
 import { DIFFICULTY_LABELS } from '@/constants/tasks';
 import { cx } from '@/utils/cx';
-import { initials } from '@/utils/task-display';
-import { ASIDE_ID, COMPANY_AVATARS, ICONS, PROGRESS_STEPS, RECOMMENDED_COUNT, tint } from '../constants/discover';
+import {
+  ASIDE_ID,
+  COMPANY_AVATARS,
+  ICONS,
+  PROGRESS_STEPS,
+  RECOMMENDED_COUNT,
+  tint,
+} from '../constants/discover';
 import type { AvailableTask } from '../hooks';
 import { recommendTasks } from '../utils/filter-tasks';
+import { CompanyLogo } from './CompanyLogo';
 import { Svg } from './Svg';
 import styles from '../TasksPage.module.css';
 
@@ -36,9 +43,11 @@ export function DiscoverAside({ tasks }: { tasks: AvailableTask[] }) {
             {recommended.map((task) => (
               <li key={task.id}>
                 <Link to={`/tasks/${task.id}`} className={styles.rec}>
-                  <span className={styles.logoSm} style={tint(task.task_type)} aria-hidden="true">
-                    {initials(task.Company.name)}
-                  </span>
+                  <CompanyLogo
+                    name={task.Company.name}
+                    className={styles.logoSm}
+                    style={tint(task.task_type)}
+                  />
                   <span className={styles.recText}>
                     <strong>{task.title}</strong>
                     <small>
@@ -65,7 +74,7 @@ export function DiscoverAside({ tasks }: { tasks: AvailableTask[] }) {
           <ul className={styles.avatars}>
             {companies.slice(0, COMPANY_AVATARS).map((name) => (
               <li key={name} title={name}>
-                {initials(name)}
+                <CompanyLogo name={name} className={styles.avatar} />
               </li>
             ))}
             {companies.length > COMPANY_AVATARS && (

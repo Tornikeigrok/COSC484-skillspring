@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react';
 import type { ClipboardEvent, FormEvent, KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card, PageHeading, buttonClass } from '../../components/ui';
+import { Button, buttonClass } from '../../components/ui';
 import { cx } from '../../utils/cx';
-import layout from '../../styles/layout.module.css';
 import notice from '../../styles/notice.module.css';
 import styles from './VerificationCodePage.module.css';
+import verifyStyles from './Verification.module.css';
+import { VerificationShell } from './components/VerificationShell';
+import { Icon } from './components/Icon';
+import { ICONS, STEPS } from './constants/verification';
 import { useValidateCode, useValidateCompanyCode } from './hooks';
 import { useCurrentUser } from '../dashboard/hooks/use-profile';
-
-
 
 const LENGTH = 6;
 
@@ -19,7 +20,10 @@ export const VerificationCodePage = () => {
   const code = digits.join('');
 
   function fill(start: number, value: string) {
-    const chars = value.replace(/\D/g, '').slice(0, LENGTH - start).split('');
+    const chars = value
+      .replace(/\D/g, '')
+      .slice(0, LENGTH - start)
+      .split('');
     if (!chars.length) return;
     const next = [...digits];
     chars.forEach((c, i) => (next[start + i] = c));
@@ -42,7 +46,6 @@ export const VerificationCodePage = () => {
     fill(i, e.clipboardData.getData('text'));
   }
 
- 
   const studentValidation = useValidateCode();
   const companyValidation = useValidateCompanyCode();
   const { data: user } = useCurrentUser();
@@ -58,37 +61,32 @@ export const VerificationCodePage = () => {
   }
 
   return (
-    <div className={layout.narrowPage}>
-      <PageHeading
-        eyebrow="BUILDING TRUST"
-        title="Check your email"
-        description={`We sent a 6-digit code to your ${student ? 'university' : 'work'} email. Enter it below to finish verification.`}
-      />
-      {validation.isSuccess ?
-      <Card className={styles.card} role="status">
-        <div className={cx(styles.icon, styles.iconSuccess)} aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
+    <VerificationShell
+      role={student ? 'student' : 'company'}
+      step={validation.isSuccess ? STEPS.length : 1}
+      title={validation.isSuccess ? 'You’re verified' : 'Check your email'}
+      description={
+        validation.isSuccess
+          ? 'All done. Your account now carries the verified badge.'
+          : `We sent a 6-digit code to your ${student ? 'university' : 'work'} email. Enter it below to finish verification.`
+      }
+    >
+      {validation.isSuccess ? (
+        <div className={styles.done} role="status">
+          <div className={cx(styles.icon, styles.iconSuccess)} aria-hidden="true">
+            <Icon d={ICONS.check} size={28} />
+          </div>
+          <p className={styles.successText}>
+            {student
+              ? 'Your university email is confirmed. You can now apply to tasks from companies on SkillSpring.'
+              : 'Your work email is confirmed. You can now post tasks for students on SkillSpring.'}
+          </p>
+          <Link className={buttonClass('primary')} to={student ? '/tasks' : '/business/tasks/new'}>
+            {student ? 'Explore tasks' : 'Post a task'}
+            <Icon d={ICONS.arrow} size={16} />
+          </Link>
         </div>
-        <h2 className={styles.successTitle}>You're verified</h2>
-        <p className={styles.successText}>
-          {student
-            ? 'Your university email is confirmed. You can now apply to tasks from companies on SkillSpring.'
-            : 'Your work email is confirmed. You can now post tasks for students on SkillSpring.'}
-        </p>
-        <Link className={buttonClass('primary', styles.successAction)} to={student ? '/tasks' : '/business/tasks/new'}>
-          {student ? 'Explore tasks' : 'Post a task'}
-        </Link>
-      </Card>
-      :
-      <Card className={styles.card}>
-        <div className={styles.icon} aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="5" width="18" height="14" rx="2" />
-            <path d="m3 7 9 6 9-6" />
-          </svg>
-        </div>
+      ) : (
         <form
           className={styles.form}
           onSubmit={submit}
@@ -126,20 +124,36 @@ export const VerificationCodePage = () => {
               ))}
             </div>
           </fieldset>
-          <Button type="submit" className={styles.submit} disabled={code.length < LENGTH || validation.isPending || !user}>
-            {validation.isPending ? 'Verifying code...' : 'Verify code'}
-          </Button>
-          {validation.isError && <p className={cx(notice.notice, notice.error)} role="alert">{validation.error.message}</p>}
+
+          {validation.isError && (
+            <p className={cx(notice.notice, notice.error)} role="alert">
+              {validation.error.message}
+            </p>
+          )}
+
           <p className={styles.resend}>
             Didn't get it? Check your spam folder or{' '}
             <button type="button" className={styles.link}>
               resend the code
             </button>
           </p>
+
+          <div className={verifyStyles.actions}>
+            <Link to="/verification" className={buttonClass('secondary', verifyStyles.cancel)}>
+              Back
+            </Link>
+            <Button
+              type="submit"
+              disabled={code.length < LENGTH || !user}
+              busy={validation.isPending}
+            >
+              Verify code
+              <Icon d={ICONS.arrow} size={16} />
+            </Button>
+          </div>
         </form>
-      </Card>
-      }
-    </div>
+      )}
+    </VerificationShell>
   );
 };
 

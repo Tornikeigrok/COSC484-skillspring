@@ -11,12 +11,12 @@ import { useSavedTasks } from '@/pages/discover/hooks/use-saved-tasks';
 import { recommendTasks } from '@/pages/discover/utils/filter-tasks';
 import discover from '@/pages/discover/DiscoverPage.module.css';
 import {
-  FOR_YOU_COUNT,
+  STUDENT_FOR_YOU_COUNT,
   OVERVIEW_ICONS,
-  OVERVIEW_STATS,
-  OVERVIEW_TABS,
+  STUDENT_OVERVIEW_STATS,
+  STUDENT_OVERVIEW_TABS,
 } from '../constants/overview';
-import type { OverviewStatKey, OverviewTab } from '../constants/overview';
+import type { StudentOverviewStatKey, StudentOverviewTab } from '../constants/overview';
 import { getGreeting } from '../utils/get-greeting';
 import styles from '../HomePage.module.css';
 
@@ -27,15 +27,15 @@ export function StudentOverview({
 }: {
   firstName: string;
   skills: string[];
-  counts: Record<OverviewStatKey, number>;
+  counts: Record<StudentOverviewStatKey, number>;
 }) {
-  const [tab, setTab] = useState<OverviewTab>('forYou');
+  const [tab, setTab] = useState<StudentOverviewTab>('forYou');
   const { data: allTasks = [], isPending, isError, error, refetch } = useGetAllTasks();
   const { ids: savedIds, isSaved } = useSavedTasks();
 
   const tasks =
     tab === 'forYou'
-      ? recommendTasks(allTasks, skills, FOR_YOU_COUNT)
+      ? recommendTasks(allTasks, skills, STUDENT_FOR_YOU_COUNT)
       : allTasks.filter((task) => isSaved(task.id));
 
   return (
@@ -63,7 +63,7 @@ export function StudentOverview({
       </section>
 
       <ul className={styles.stats}>
-        {OVERVIEW_STATS.map(({ key, label, hint, to, icon }) => (
+        {STUDENT_OVERVIEW_STATS.map(({ key, label, hint, to, icon }) => (
           <li key={key}>
             <Link className={styles.stat} to={to}>
               <span className={styles.statIcon}>
@@ -84,14 +84,14 @@ export function StudentOverview({
         <div className={styles.toolbar}>
           <h2 className={styles.sectionTitle}>Recommended for you</h2>
           <div className={styles.tabs} role="tablist" aria-label="Recommended projects">
-            {Object.entries(OVERVIEW_TABS).map(([key, label]) => (
+            {Object.entries(STUDENT_OVERVIEW_TABS).map(([key, label]) => (
               <button
                 key={key}
                 type="button"
                 role="tab"
                 aria-selected={tab === key}
                 className={cx(styles.tab, tab === key && styles.tabActive)}
-                onClick={() => setTab(key as OverviewTab)}
+                onClick={() => setTab(key as StudentOverviewTab)}
               >
                 {label}
                 {key === 'saved' && savedIds.length > 0 && (

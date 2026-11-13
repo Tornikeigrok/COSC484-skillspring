@@ -11,7 +11,7 @@ import { ICONS, tint } from '@/pages/discover/constants/discover';
 import discover from '@/pages/discover/DiscoverPage.module.css';
 import { matches } from '@/pages/business-tasks/constants/posted-tasks';
 import { useFetchAllTasks } from '@/pages/business-tasks/hooks';
-import { COMPANY_OVERVIEW_STATS, OVERVIEW_ICONS, RECENT_TASKS_COUNT } from '../constants/overview';
+import { COMPANY_OVERVIEW_STATS, OVERVIEW_ICONS, COMPANY_RECENT_TASKS_COUNT } from '../constants/overview';
 import { getGreeting } from '../utils/get-greeting';
 import styles from '../HomePage.module.css';
 
@@ -26,7 +26,7 @@ export function CompanyOverview({
 
   const recent = [...tasks]
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
-    .slice(0, RECENT_TASKS_COUNT);
+    .slice(0, COMPANY_RECENT_TASKS_COUNT);
 
   const counts = {
     open: tasks.filter((task) => matches('open', task.status)).length,

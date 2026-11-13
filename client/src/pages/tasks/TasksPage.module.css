@@ -754,6 +754,10 @@
     grid-template-columns: 200px minmax(0, 1fr);
   }
 
+  .filters {
+    position: static;
+  }
+  
   .aside {
     grid-column: 1 / -1;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

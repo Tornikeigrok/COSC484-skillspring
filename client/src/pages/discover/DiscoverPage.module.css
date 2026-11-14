@@ -394,7 +394,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 16px;
-  padding: 14px 18px;
+  padding: 20px 18px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background-color: var(--color-surface);
@@ -435,6 +435,7 @@
 
 .rowMain {
   min-width: 0;
+
 }
 
 .rowTitle {
@@ -469,6 +470,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+  margin: 0px;
   color: var(--color-muted);
   font-size: 13px;
 }

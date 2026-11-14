@@ -157,10 +157,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 8px;
 }
 
 .filtersHead h2 {
+  margin: 0 auto 0 0;
   font-size: 16px;
 }
 
@@ -174,6 +176,21 @@
 
 .clear:hover {
   text-decoration: underline;
+}
+
+.filtersToggle {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filtersOpen .filtersToggle .filterChevron {
+  transform: rotate(180deg);
 }
 
 .filterGroup {
@@ -774,6 +791,26 @@
 
   .filters {
     position: static;
+  }
+
+  .filtersToggle {
+    display: inline-flex;
+  }
+
+  .filterBody {
+    display: none;
+  }
+
+  .filtersOpen .filterBody {
+    display: block;
+  }
+
+  .filtersHead {
+    margin-bottom: 0;
+  }
+
+  .filtersOpen .filtersHead {
+    margin-bottom: 8px;
   }
 
   .row {

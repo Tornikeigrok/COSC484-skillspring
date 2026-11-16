@@ -28,7 +28,7 @@ module.exports = {
 
         const proposals = await Proposal.findAll({
            where: { student_id: student.id },
-           attributes: ['id', 'status', 'proposed_hours', 'created_at'],
+           attributes: ['id', 'status', 'proposed_hours', 'created_at', 'nda_signed'],
            include: {
                model: Task,
                attributes: ['id', 'title', 'task_type', 'difficulty'],
@@ -48,7 +48,7 @@ module.exports = {
                 attributes: ['id'],
                 include: {
                     model: User,
-                    attributes: ['first_name', 'last_name'],
+                    attributes: ['first_name', 'last_name', 'email'],
                 },
             }
         })

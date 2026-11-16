@@ -19,6 +19,9 @@ function checkQueue() {
         }
     });
   }
+  
+  queue.on('error', (err) => console.log('just-posted-task-queue error', err));
+
   return queue;
 }
 

@@ -19,6 +19,7 @@ function checkQueue() {
             }
         })
     }
+    queue.on('err', (() => console.error('verification-email-queue', err)));
     return queue;
 }
 

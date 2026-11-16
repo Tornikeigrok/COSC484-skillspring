@@ -13,6 +13,7 @@ import { FILTERS, ICONS, SORTS, matches, statusTone } from './constants/posted-t
 import type { Filter, Sort } from './constants/posted-tasks';
 import { useFetchAllTasks } from './hooks';
 import type { CompanyTask } from './hooks';
+import { useSearchParams } from 'react-router-dom';
 
 function downloadCsv(tasks: CompanyTask[]) {
   const rows = [
@@ -114,7 +115,11 @@ function TaskRow({
 
 export default function BusinessTasksPage() {
   const { data: tasks, isPending, isError, error, refetch } = useFetchAllTasks();
-  const [filter, setFilter] = useState<Filter>('all');
+  // Filter lives in the URL so links like /business/tasks?filter=open work
+  const [params, setParams] = useSearchParams();
+  const raw = params.get('filter');
+  const filter = raw && Object.hasOwn(FILTERS, raw) ? (raw as Filter) : 'all';
+  const setFilter = (key: Filter) => setParams({ filter: key });
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<Sort>('newest');
   const [selected, setSelected] = useState<Set<number>>(new Set());

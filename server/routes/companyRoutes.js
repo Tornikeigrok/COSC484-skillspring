@@ -114,4 +114,12 @@ router.get('/student-profile/:id', createHandler(
     companyController.fetchProfileForView,
 ));
 
+router.post('/send-nda', createHandler(
+    (req) => ({
+        email: req.body.email,
+        taskId: req.body.taskId,
+    }),
+    companyController.selectStudent,
+))
+
 module.exports = router;

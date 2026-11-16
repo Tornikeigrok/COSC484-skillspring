@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchProfile, type StudentProfile } from '@/pages/home/hooks/use-profile';
 import { DIFFICULTY_LABELS } from '@/constants/tasks';
@@ -29,6 +30,7 @@ export function DiscoverAside({ tasks }: { tasks: AvailableTask[] }) {
   return (
     <aside id={ASIDE_ID} className={styles.aside} aria-label="Your progress and recommendations">
       {student && <Progress student={student} />}
+      {student && <AutoMatch />}
 
       {recommended.length > 0 && (
         <section className={styles.panel} aria-labelledby="recommended-title">
@@ -84,6 +86,56 @@ export function DiscoverAside({ tasks }: { tasks: AvailableTask[] }) {
         </section>
       )}
     </aside>
+  );
+}
+
+const AUTO_MATCH_POINTS = [
+  'Skill and portfolio analysis',
+  'Fresh matches every hour',
+  'No more endless scrolling',
+];
+
+// ponytail: UI preview only, toggle is local state; wire to backend matching worker when it exists
+function AutoMatch() {
+  const [on, setOn] = useState(false);
+
+  return (
+    <section className={cx(styles.panel, styles.auto)} aria-labelledby="automatch-title">
+      <header className={styles.autoHead}>
+        <span className={styles.autoIcon}>
+          <Svg d={ICONS.bolt} size={18} />
+        </span>
+        <div>
+          <span className={styles.autoEyebrow}>Smart matching</span>
+          <h2 id="automatch-title">Auto-match</h2>
+        </div>
+      </header>
+      <p className={styles.autoText}>
+        Let tasks find you. We continuously analyze your skills and past projects and
+        shortlist the work you're best suited for.
+      </p>
+      <ul className={styles.autoPoints}>
+        {AUTO_MATCH_POINTS.map((point) => (
+          <li key={point}>
+            <Svg d={ICONS.check} size={14} />
+            {point}
+          </li>
+        ))}
+      </ul>
+      <label className={styles.autoToggle}>
+        <span>
+          <strong>Match tasks for me</strong>
+          <small>{on ? 'Active · scanning hourly' : 'Off'}</small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className={styles.switch}
+          checked={on}
+          onChange={(e) => setOn(e.target.checked)}
+        />
+      </label>
+    </section>
   );
 }
 

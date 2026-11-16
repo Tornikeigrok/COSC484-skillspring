@@ -693,6 +693,140 @@
   color: var(--color-brand);
 }
 
+/* ---------- auto-match ---------- */
+
+.auto {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 100% 0%, var(--color-brand-soft), transparent 60%),
+    var(--color-surface);
+}
+
+.autoHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.autoHead h2 {
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+.autoIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-brand), color-mix(in srgb, var(--color-brand) 60%, #8b5cf6));
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-brand) 30%, transparent);
+}
+
+.autoEyebrow {
+  display: block;
+  color: var(--color-brand);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.autoText {
+  margin-bottom: 12px;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.autoPoints {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  list-style: none;
+  font-size: 12px;
+}
+
+.autoPoints li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.autoPoints svg {
+  flex-shrink: 0;
+  color: var(--color-brand);
+}
+
+.autoToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  cursor: pointer;
+}
+
+.autoToggle > span {
+  display: grid;
+  gap: 1px;
+}
+
+.autoToggle strong {
+  font-size: 13px;
+}
+
+.autoToggle small {
+  color: var(--color-muted);
+  font-size: 11px;
+}
+
+.switch {
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  border-radius: 9999px;
+  background-color: var(--color-line);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  transition: transform 0.15s;
+}
+
+.switch:checked {
+  background-color: var(--color-brand);
+}
+
+.switch:checked::after {
+  transform: translateX(16px);
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
 .recList {
   display: grid;
   list-style: none;

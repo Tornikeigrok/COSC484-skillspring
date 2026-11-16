@@ -96,6 +96,10 @@
   color: inherit;
 }
 
+.stat > * {
+  margin: 0;
+}
+
 .statIcon {
   display: grid;
   place-items: center;

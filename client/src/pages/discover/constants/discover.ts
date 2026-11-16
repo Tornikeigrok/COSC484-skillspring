@@ -78,6 +78,7 @@ export const ICONS = {
   check: 'M20 6 9 17l-5-5',
   sparkle: 'M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z',
   menu: 'M4 6h16M4 12h16M4 18h16',
+  bolt: 'M13 2 4 14h7l-1 8 9-12h-7z',
   shield: 'M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6zM8.5 12l2.5 2.5 4.5-5',
 } as const;
 

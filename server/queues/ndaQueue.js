@@ -20,7 +20,7 @@ function checkQueue() {
         })
     }
 
-    queue.on('err', (() => console.error('nda-email-queue error', err)));
+    queue.on('error', (err) => console.error('nda-email-queue', err));
 
     return queue;
 }

@@ -15,18 +15,27 @@ import { cx } from '../../utils/cx';
 import layout from '../../styles/layout.module.css';
 import links from '../../styles/links.module.css';
 import text from '../../styles/text.module.css';
-import { sampleProfile } from './constants/sample-profile';
 import { toOwnProfile } from './utils/own-profile';
 import styles from './ProfilePage.module.css';
 import { CompanyProfileView } from './CompanyProfileView';
+import { StudentProfileView } from './StudentProfileView';
+import { useViewStudent } from './hooks';
+
 export default function ProfilePage() {
-  const { id } = useParams();
+  const { id } = useParams(); // student_id when a company views a student
   const { data: me, isPending } = useCurrentUser();
   const own = !id;
-  if (own && isPending) return <Loading />;
-  const { user, profile, experiences } = own && me ? toOwnProfile(me) : sampleProfile;
+  const { data: studentView, isPending: viewProfilePending } = useViewStudent(id);
+
+  if (own ? isPending : viewProfilePending) return <Loading />;
+  if (!own && studentView) return <StudentProfileView student={studentView} />;
+
+  const data = own && me ? toOwnProfile(me) : undefined;
+  if (!data) return <EmptyState title="Profile not found.">This profile doesn’t exist or isn’t available.</EmptyState>;
+  const { user, profile, experiences } = data;
   const student = user.role === 'student';
   if (!student) return <CompanyProfileView user={user} profile={profile} own={own} />;
+
   return (
     <>
       <PageHeading
@@ -125,10 +134,11 @@ export default function ProfilePage() {
             {student && profile.graduation_year && <p>Class of {profile.graduation_year}</p>}
             <hr />
              <p className={text.mutedSmall}>
-               {profile.verification_status === 'unverified' ? `
-               Identity verification is reviewed separately from project approval. A completed
-               project verifies the work, not the account holder’s identity. You must verify yur account before starting the work.
-               ` : 'Your profile hass been successfuly verified. You can go ahead and start gaining experience.'}
+               {profile.verification_status === 'verified'
+                 ? 'Your profile has been verified. You can go ahead and start gaining experience.'
+                 : profile.verification_status === 'pending'
+                   ? 'Your verification is under review.'
+                   : 'Identity verification is reviewed separately from project approval. A completed project verifies the work, not the account holder’s identity. You must verify your account before starting the work.'}
              </p>
             {own && me?.role === 'student' && profile.verification_status !== 'verified' && (
               <Link className={links.textLink} to="/verification">

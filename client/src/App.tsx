@@ -1,5 +1,5 @@
-import { Route, Routes, Link } from 'react-router-dom';
-import { Component, lazy, Suspense } from 'react';
+import { Route, Routes, Link, useLocation } from 'react-router-dom';
+import { Component, lazy, Suspense, useLayoutEffect } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import LandingPage from './pages/landing/LandingPage';
 import AuthPage from './pages/auth/AuthPage';
@@ -26,6 +26,8 @@ const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 const VerificationPage = lazy(() => import('./pages/verification/VerificationPage'));
 const VerificationCodePage = lazy(() => import('./pages/verification/VerificationCodePage'));
+const NdaSigningPage = lazy(() => import('./pages/nda/NdaSigningPage'));
+const NdaDashboardPage = lazy(() => import('./pages/nda/NdaDashboardPage'));
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -49,19 +51,30 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { failed: bool
   }
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
     <AppErrorBoundary>
       <Toaster position='bottom-right' richColors/>
       <Suspense fallback={<Loading />}>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage register />} />
+          <Route element={<NdaSigningPage />} path='/student/nda/login'/>
           <Route element={<AuthProtection />}>
             <Route element={<TaskLayout />}>
               {/* Task marketplace is student-only; companies get redirected to /business */}
               <Route element={<RequireAuth role="student" />}>
+                <Route path='/student/nda/:taskId' element={<NdaDashboardPage />}/>
                 <Route path="/tasks" element={<DiscoverPage />} />
                 <Route path="/tasks/:id" element={<TaskDetailPage />} />
               </Route>

@@ -16,25 +16,23 @@ import {
 import { STATUS_LABELS } from '../../constants/status';
 import { DIFFICULTY_LABELS, TASK_TYPE_LABELS } from '../../constants/tasks';
 import menu from '@/ui/radix-dropdown.module.css';
-import { sampleAssignments } from '../assignments/constants/sample-assignments';
-import { sampleTaskProposals } from './constants/sample-tasks';
 import { statusTone } from './constants/posted-tasks';
 import { PATHS, TABS } from './constants/manage-task';
 import type { Tab } from './constants/manage-task';
 import { formatDateTime } from './utils/format-date-time';
 import { cx } from '../../utils/cx';
-import { formatEstimate } from '../../utils/task-display';
-import links from '../../styles/links.module.css';
+import { formatEstimate, initials } from '../../utils/task-display';
 import text from '../../styles/text.module.css';
+import links from '../../styles/links.module.css';
 import tasks from './BusinessTasksPage.module.css';
 import { Empty } from './components/Empty';
 import { Icon } from './components/Icon';
 import styles from './ManageTaskPage.module.css';
-import { useFetchAllTasks, useTaskDetails } from './hooks';
-
+import { useFetchAllTasks, useTaskDetails, useGetTaskProposals, useSendNda } from './hooks';
 
 export default function ManageTaskPage() {
   const { id } = useParams();
+  const [openModal, setOpenModal] = useState(false);
   
   const { data: allTasks, isPending, isError, error, refetch } = useFetchAllTasks();
   const { data: details, isPending: assetPending } = useTaskDetails(id);
@@ -43,9 +41,17 @@ export default function ManageTaskPage() {
   const task = allTasks?.find((t) => String(t.id) === id);
   const asset = details?.task_assets?.TaskAsset;
 
+  const { data: proposals = [] } = useGetTaskProposals(id, tab !== 'submission');
+  const [activeId, setActiveId] = useState<number>();
+  const active = proposals.find((p) => p.id === activeId) ?? proposals[0];
+  const nameOf = (p: (typeof proposals)[number]) =>
+    p.Student?.User ? fullName(p.Student.User) : `Student #${p.student_id}`;
+  // The accepted proposal is this task's assignment
+  const assigned = proposals.find((p) => p.status === 'accepted');
+  const studentSelected = !!assigned;
 
-  const proposals = sampleTaskProposals;
-  const assigned = sampleAssignments.find((a) => a.task.id === id);
+  const { mutate: sendNda, isPending: sendingNda } = useSendNda();
+
   const publicUrl = `/tasks/${id}`;
 
   const copyLink = () =>
@@ -82,7 +88,7 @@ export default function ManageTaskPage() {
     [PATHS.code, TASK_TYPE_LABELS[task.task_type]?.label ?? task.task_type, 'Type'],
     [PATHS.layers, DIFFICULTY_LABELS[task.difficulty] ?? task.difficulty, 'Difficulty'],
     [PATHS.clock, task.estimated_hours !== null ? formatEstimate(task.estimated_hours) : '—', 'Estimate'],
-    [PATHS.calendar, <DateLabel value={task.created_at} />, 'Posted'],
+    [PATHS.calendar, <DateLabel key="posted" value={task.created_at} />, 'Posted'],
   ] as const;
 
   return (
@@ -162,38 +168,109 @@ export default function ManageTaskPage() {
           <div className={styles.panel} role="tabpanel">
             {tab === 'proposals' &&
               (proposals.length ? (
-                <ul className={styles.proposals}>
-                  {proposals.map((proposal) => (
-                    <li key={proposal.id}>
-                      <div className={styles.proposalHead}>
-                        <h3>
-                          <Link to={`/profiles/${proposal.student.id}`}>
-                            {fullName(proposal.student)}
-                          </Link>
-                        </h3>
-                        <StatusBadge status={proposal.status} />
-                      </div>
-                      <p className={text.mutedSmall}>
-                        Estimated effort: {proposal.estimated_hours} hours
-                      </p>
-                      <p className={text.longText}>{proposal.message}</p>
-                      <div className={styles.proposalActions}>
-                        <Link className={links.textLink} to={`/profiles/${proposal.student.id}`}>
-                          View student profile →
+                <div className={styles.inbox}>
+                  <ul className={styles.inboxList} aria-label="Proposals">
+                    {proposals.map((proposal) => {
+                      const name = nameOf(proposal);
+                      const selected = proposal.id === active?.id;
+                      return (
+                        <li key={proposal.id}>
+                          <button
+                            type="button"
+                            className={cx(styles.inboxItem, selected && styles.inboxItemActive)}
+                            aria-current={selected || undefined}
+                            onClick={() => setActiveId(proposal.id)}
+                          >
+                            <span className={styles.avatar} aria-hidden="true">
+                              {initials(name)}
+                            </span>
+                            <span className={styles.inboxText}>
+                              <span className={styles.inboxName}>{name}</span>
+                              <span className={styles.inboxMeta}>
+                                {formatEstimate(proposal.proposed_hours)} · <DateLabel value={proposal.created_at} />
+                              </span>
+                            </span>
+                            {proposal.status === 'pending' && (
+                              <span className={styles.dot} aria-label="Pending" />
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {active && (
+                    <article className={styles.detail} key={active.id}>
+                      <header className={styles.detailHead}>
+                        <span className={cx(styles.avatar, styles.avatarLg)} aria-hidden="true">
+                          {initials(nameOf(active))}
+                        </span>
+                        <div className={styles.detailWho}>
+                          <h3>{nameOf(active)}</h3>
+                          <p>
+                            Sent <DateLabel value={active.created_at} />
+                          </p>
+                        </div>
+                        <StatusBadge status={active.status} />
+                        
+                      </header>
+
+                      <dl className={styles.stats}>
+                        <div>
+                          <dt>Estimate</dt>
+                          <dd>{formatEstimate(active.proposed_hours)}</dd>
+                        </div>
+                        <div>
+                          <dt>Questions</dt>
+                          <dd>{active.questions?.length ?? 0}</dd>
+                        </div>
+                      </dl>
+
+                      <section className={styles.detailSection}>
+                        <h4>Approach</h4>
+                        <p className={styles.approach}>{active.approach}</p>
+                      </section>
+
+                      {active.questions?.length > 0 && (
+                        <section className={styles.detailSection}>
+                          <h4>Questions</h4>
+                          <ol className={styles.questions}>
+                            {active.questions.map((q) => (
+                              <li key={q}>{q}</li>
+                            ))}
+                          </ol>
+                        </section>
+                      )}
+                      <footer className={styles.detailActions}>
+                        <Link className={styles.ghostLink} to={`/profiles/${active.student_id}`}>
+                          View profile
                         </Link>
-                        {isOpen && proposal.status === 'pending' && (
+
+                        {isOpen && !studentSelected && active.status === 'pending' && active.Student && (
                           <ConfirmDialog
+                            open={openModal}
+                            onOpenChange={setOpenModal}
                             trigger={<Button>Select student</Button>}
-                            title={`Select ${fullName(proposal.student)}?`}
+                            title={`Select ${nameOf(active)}?`}
                             description="This creates one assignment and closes the other proposals."
                           >
-                            <Button>Confirm selection</Button>
+                            <Button
+                              busy={sendingNda}
+                              onClick={() =>
+                                sendNda(
+                                  { email: active.Student!.User.email, taskId: active.task_id },
+                                  { onSuccess: () => setOpenModal(false) },
+                                )
+                              }
+                            >
+                              Confirm selection
+                            </Button>
                           </ConfirmDialog>
                         )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                      </footer>
+                    </article>
+                  )}
+                </div>
               ) : (
                 <Empty icon={PATHS.people} title="No proposals yet">
                   <p>Students will see this task in the marketplace and can submit a proposal.</p>
@@ -205,9 +282,16 @@ export default function ManageTaskPage() {
               ))}
             {tab === 'assignment' &&
               (assigned ? (
-                <Empty icon={PATHS.layers} title="A student is working on this">
-                  <Link className={buttonClass()} to={`/assignments/${assigned.id}`}>
-                    Open assignment →
+                <Empty
+                  icon={PATHS.layers}
+                  title={
+                    assigned.nda_signed
+                      ? `${nameOf(assigned)} is working on this`
+                      : `Waiting for ${nameOf(assigned)} to sign the NDA`
+                  }
+                >
+                  <Link className={buttonClass()} to={`/profiles/${assigned.student_id}`}>
+                    View student profile →
                   </Link>
                 </Empty>
               ) : (

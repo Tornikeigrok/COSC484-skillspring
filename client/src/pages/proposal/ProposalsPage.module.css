@@ -353,6 +353,40 @@
   transform: translateX(2px);
 }
 
+.locked {
+  display: grid;
+  gap: 6px;
+  justify-self: end;
+}
+
+.ctaLocked {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-canvas);
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: not-allowed;
+}
+
+.lockedNote {
+  /* width 0 + min-width 100% makes the note wrap at the button's width */
+  width: 0;
+  min-width: 100%;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .go {
   display: grid;
   place-items: center;

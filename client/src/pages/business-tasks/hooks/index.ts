@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api-request";
-import { DIFFICULTY_LABELS, DIFFICULTIES, TaskType } from "@/constants/tasks";
+import { DIFFICULTY_LABELS, TaskType } from "@/constants/tasks";
+import { toast } from "sonner";
 
 
 export interface Task {
@@ -91,3 +92,48 @@ export function useTaskDetails(id: string | undefined) {
         enabled: !!id,
     })
 }
+
+interface Proposals {
+    Student?: {
+        id: number;
+        User: {
+            first_name: string;
+            last_name: string;
+            email: string;
+        };
+    };
+    id: number;
+    task_id: number;
+    student_id: number;
+    approach: string;
+    proposed_hours: number;
+    questions: string[];
+    status: string;
+    nda_signed: boolean;
+    created_at: string;
+}
+
+export function useGetTaskProposals(taskId?: string, enabled = true) {
+    return useQuery({
+        queryKey: ['proposals', taskId],
+        queryFn: async () => await apiRequest<Proposals[]>(`/api/proposals/company-task-proposals/${taskId}`, 'GET'),
+        enabled: !!taskId && enabled,
+    });
+}
+
+interface NDA {
+    email: string;
+    taskId: number;
+}
+
+export function useSendNda() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (body: NDA) => await apiRequest('/api/company/send-nda', 'POST', body),
+        onSuccess: () => {
+            toast.success('Student selected. We’ve emailed them the NDA.');
+            queryClient.invalidateQueries({ queryKey: ['proposals'] })
+        },
+    });
+}
+

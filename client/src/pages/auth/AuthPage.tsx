@@ -20,7 +20,7 @@ import type { FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import styles from './AuthPage.module.css';
 
-export default function AuthPage({ register = false }: { register?: boolean }) {
+export default function AuthPage({ register = false, studentNda = false }: { register?: boolean, studentNda?: boolean }) {
   const [params] = useSearchParams();
   const [role, setRole] = useState<Role>(params.get('role') === 'company' ? 'company' : 'student');
   const navigate = useNavigate();
@@ -149,7 +149,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
           </p>
           <fieldset className={styles.roles}>
             <legend className={styles.srOnly}>Account type</legend>
-            {ROLES.map((r) => (
+            {!studentNda && ROLES.map((r) => (
               <label key={r} className={cx(styles.role, role === r && styles.roleActive)}>
                 <input
                   type="radio"
@@ -165,7 +165,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
           {/* GitHub sign-in is student-only (rejected by server otherwise)*/}
           {!register && role === 'student' && (
             <>
-              <a className={styles.github} href={`${import.meta.env.VITE_API_URL ?? ''}/api/auth/github`}>
+              <a className={styles.github} href={`${import.meta.env.VITE_API_URL ?? ''}/api/auth/github?next=${encodeURIComponent(params.get('next') ?? '')}`}>
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.27 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z" />
                 </svg>
@@ -218,6 +218,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
               {mutation.isPending ? (register ? 'Creating account...' : 'Logging in...') : register ? 'Create account' : 'Log in'} <span aria-hidden="true">→</span>
             </Button>
           </form>
+          {!studentNda && (
           <p className={styles.switch}>
             {register ? 'Already have an account?' : 'New to SkillSpring?'}{' '}
             <Link
@@ -227,6 +228,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
               {register ? 'Log in' : 'Get started'}
             </Link>
           </p>
+          )}
         </div>
       </main>
     </div>
@@ -234,6 +236,6 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
 }
 
 // Only follow in-app paths from ?next= so a crafted link can't send users off-site
-function safeNext(next: string | null) {
+export function safeNext(next: string | null) {
   return next && next.startsWith('/') && !next.startsWith('//') ? next : null;
 }

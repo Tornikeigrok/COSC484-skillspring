@@ -209,11 +209,19 @@ function ProposalRow({ proposal: p }: { proposal: MyProposal }) {
         ))}
       </ol>
 
-      {p.status === 'accepted' ? (
+      {p.status === 'accepted' && p.nda_signed ? (
         <Link to="/assignments" className={styles.cta}>
           Start assignment
           <Svg d={ICONS.arrow} size={14} />
         </Link>
+      ) : p.status === 'accepted' ? (
+        <div className={styles.locked}>
+          <span className={styles.ctaLocked}>
+            <Svg d={ICONS.lock} size={14} />
+            Sign NDA to start
+          </span>
+          <p className={styles.lockedNote}>Check your email for the NDA signing link.</p>
+        </div>
       ) : (
         <Link to={`/tasks/${task.id}`} className={styles.go} aria-label={`Open ${task.title}`}>
           <Svg d={ICONS.arrow} />

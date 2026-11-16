@@ -2,7 +2,7 @@ import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api-request";
 import type { AvailableTask } from "@/pages/discover/hooks";
 
-interface ProposalBody {
+export interface ProposalBody {
     taskId: string,
     approach: string,
     questions?: string,
@@ -25,6 +25,7 @@ export interface MyProposal {
     status: 'pending' | 'accepted' | 'rejected';
     proposed_hours: number;
     created_at: string;
+    nda_signed: boolean;
     Task: Pick<AvailableTask, 'id' | 'title' | 'task_type' | 'difficulty' | 'Company'>;
 }
 

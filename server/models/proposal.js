@@ -35,6 +35,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: PROPOSAL_STATUS.PENDING,
     },
+    nda_signed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: null,
+      allowNull: true,
+    }
   }, {
     sequelize,
     modelName: 'Proposal',

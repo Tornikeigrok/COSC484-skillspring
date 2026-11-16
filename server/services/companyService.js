@@ -1,4 +1,4 @@
-const { sequelize, User, Company, Task, TaskAsset, Student } = require('../models');
+const { sequelize, User, Company, Task, TaskAsset, Student, Proposal } = require('../models');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
 const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
 const bcrypt = require('bcrypt');
@@ -7,9 +7,11 @@ const { websiteDomain, isSameOrSubdomain, isFreeEmailDomain, sameWebsite } = req
 const redis = require('../utils/redisClient');
 const crypto = require('crypto');
 const { queueVerificationEmail } = require('../queues/emailQueue');
+const { queueNdaEmail } = require('../queues/ndaQueue');
 const { VERIFICATION_STATUS, verificationCodeFormat } = require('../constants/authConstants');
 const { checkTitle, checkDesc, checkEstHrs, checkTaskType, checkFile, checkDifficulty, parseTaskId } =require('../utils/taskUtils');
 const { TASK_STATUS, ASSET_TYPE, TASK_UPLOAD_DIR, AUTOMATION_FAILED, MAX_FILE_SIZE } = require('../constants/taskConstants');
+const { PROPOSAL_STATUS } = require('../constants/proposalConstants');
 const path = require('path');
 const fs = require('fs/promises');
 const { queueTaskCheck } = require('../queues/taskQueue');
@@ -481,16 +483,66 @@ module.exports = {
     fetchProfileForView: async (studentId) => {
         const userInfo = await Student.findByPk(studentId, 
             { 
-                attributes: ['user_id', 'github_url', 'university', 'graduation_year', 'verification_status', 'skills'], 
+                attributes: ['user_id', 'github_url', 'university', 'graduation_year', 'verification_status', 'skills', 'bio'],
                 include: {
                     model: User,
-                    attributes: ['first_name', 'last_name', 'role'],
+                    attributes: ['first_name', 'last_name', 'role', 'email'],
                 }
             },
         );
-
-        console.log('data sent', userInfo);
-
         return { data: userInfo };
+    },
+    // When company selects student, we send out an email.
+    // Include taskId and student email so we send email to that address
+    selectStudent: async (userId, email, rawTaskId) => {
+        // body may send the id as a number or a string
+        const taskId = parseTaskId(String(rawTaskId));
+        if (typeof email !== 'string' || !email) {
+            throw new BadRequestError('Student email is required');
+        }
+
+        const company = await Company.findOne({ attributes: ['id'], where: { user_id: userId } });
+        if (!company) {
+            throw new NotFoundError('Company profile not found');
+        }
+
+        await sequelize.transaction(async (t) => {
+            // Locked so two requests can't select students for the same task at once
+            const checkTask = await Task.findByPk(taskId, { transaction: t, lock: t.LOCK.UPDATE });
+            if (!checkTask) {
+                throw new NotFoundError('Task not found');
+            }
+            if (checkTask.company_id !== company.id) {
+                throw new ForbiddenError('You do not have access to this task');
+            }
+            if (checkTask.status !== TASK_STATUS.OPEN) {
+                throw new BadRequestError('Task not open to assign a student');
+            }
+
+            // Only the selected student's proposal on this task
+            const proposal = await Proposal.findOne({
+                where: { task_id: taskId },
+                include: {
+                    model: Student,
+                    attributes: [],
+                    required: true,
+                    include: { model: User, attributes: [], where: { email }, required: true },
+                },
+                transaction: t,
+            });
+            if (!proposal) {
+                throw new NotFoundError('No proposal from this student on this task');
+            }
+
+            await checkTask.update({ status: TASK_STATUS.IN_PROGRESS }, { transaction: t });
+
+            // Students see it go to in-progress, initially nda is not signed
+            await proposal.update({ status: PROPOSAL_STATUS.ACCEPTED, nda_signed: false }, { transaction: t });
+        });
+
+        // this will send out the nda email
+        await queueNdaEmail({ id: taskId, email, link: `${process.env.STUDENT_NDA_SIGN_PAGE}${taskId}` });
+
+        return { data: { success: true, message: 'NDA email sent'} };
     },
 };

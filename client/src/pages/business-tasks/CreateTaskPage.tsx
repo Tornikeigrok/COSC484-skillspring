@@ -9,7 +9,8 @@ import { Dropdown, DropdownMenu, DropdownRadioGroup, DropdownRadioItem, Dropdown
 import { createTaskSchema, CreateTaskFormData } from './utils/business-tasks-validations';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { usePostTask } from './hooks';
+import { usePostTask, useReviseTask } from './hooks';
+import type { CompanyTask } from './hooks';
 import { toast } from 'sonner';
 import { Icon } from './components/Icon';
 import { FORM_ICONS, TITLE_MAX, TOOLBAR, TYPE_ICONS } from './constants/create-task';
@@ -19,7 +20,8 @@ import { useFetchCompanyProfile } from '../home/hooks/use-profile';
 
 
 
-export default function CreateTaskPage() {
+// With `revise` the form edits a rejected task instead of creating a new one
+export default function CreateTaskPage({ revise }: { revise?: CompanyTask }) {
   
 
   const { data: user } = useFetchCompanyProfile();
@@ -28,18 +30,30 @@ export default function CreateTaskPage() {
   const locked = !!status && status !== 'verified';
 
   // '' until the company picks one
-  const [taskType, setTaskType] = useState<TaskType | ''>('');
+  const [taskType, setTaskType] = useState<TaskType | ''>(revise?.task_type ?? '');
 
   // only used to show the picked file's name and size
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
 
   const navigate = useNavigate();
-  const { mutate: postTask, isPending } = usePostTask();
+  const { mutate: postTask, isPending: posting } = usePostTask();
+  const { mutate: reviseTask, isPending: revising } = useReviseTask();
+  const isPending = posting || revising;
 
   const { register, control, handleSubmit, setValue, setError, formState: { errors }} = useForm({
     resolver: zodResolver(createTaskSchema),
     shouldFocusError: false,
+    // the zip can't be pre-filled (browsers don't allow it), the company uploads the corrected one
+    defaultValues: revise
+      ? {
+          title: revise.title,
+          description: revise.description,
+          task_type: revise.task_type,
+          difficulty: revise.difficulty,
+          estimated_hours: revise.estimated_hours ?? 6,
+        }
+      : undefined,
   });
 
   const titleLength = useWatch({ control, name: 'title' })?.length ?? 0;
@@ -61,14 +75,26 @@ export default function CreateTaskPage() {
   }
 
   const submitTask = (data: CreateTaskFormData) => {
-    postTask({
+    const task = {
       taskTitle: data.title,
       taskDesc: data.description,
       taskType: data.task_type,
       difficulty: data.difficulty,
       estimated_hours: data.estimated_hours,
       file: data.file,
-    }, { onSuccess: () => {
+    };
+    // nothing else shows a failed request (e.g. rate limit, invalid zip), so say what the server said
+    const onError = (error: Error) => toast.error(error.message);
+
+    if (revise) {
+      reviseTask({ id: revise.id, ...task }, { onError, onSuccess: () => {
+        navigate('/business/tasks');
+        toast.success('Task resubmitted for review');
+      }});
+      return;
+    }
+
+    postTask(task, { onError, onSuccess: () => {
       navigate('/business/tasks');
       toast.success('You have successfully created a task');
     }});
@@ -77,9 +103,31 @@ export default function CreateTaskPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1>Post a new task</h1>
-        <p>Get help from verified students on a specific technical task.</p>
+        <h1>{revise ? 'Revise your task' : 'Post a new task'}</h1>
+        <p>
+          {revise
+            ? 'Fix what the review flagged and upload a corrected zip. It goes back to review as the same task.'
+            : 'Get help from verified students on a specific technical task.'}
+        </p>
       </header>
+
+      {revise && (
+        <div className={styles.verifyBanner} role="note" aria-label="Why this task was rejected">
+          <Icon d={FORM_ICONS.info} className={styles.icon} />
+          <div>
+            <strong>Why it was rejected</strong>
+            {revise.rejected_reason?.length ? (
+              <ul>
+                {revise.rejected_reason.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No specific reason was provided.</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {locked && (
         <div className={styles.verifyBanner} role="status">
@@ -183,7 +231,9 @@ export default function CreateTaskPage() {
               ) : (
                 <p className={styles.note}>
                   <Icon d={FORM_ICONS.info} className={styles.icon} />
-                  Each file inside the archive must be under 10 MB.
+                  {revise
+                    ? 'Upload the corrected zip, it replaces the rejected one. Each file inside must be under 10 MB.'
+                    : 'Each file inside the archive must be under 10 MB.'}
                 </p>
               )}
               
@@ -228,7 +278,7 @@ export default function CreateTaskPage() {
               <div className={styles.segmented}>
                 {DIFFICULTIES.map((value, level) => (
                   <label key={value} className={styles.segment}>
-                    <input {...register('difficulty')} type="radio" value={value} defaultChecked={value === 'medium'} />
+                    <input {...register('difficulty')} type="radio" value={value} defaultChecked={value === (revise?.difficulty ?? 'medium')} />
                     {/* signal-strength bars: one more filled bar per level */}
                     <svg className={styles.bars} viewBox="0 0 16 16" aria-hidden="true">
                       {[0, 1, 2].map((bar) => (
@@ -250,7 +300,7 @@ export default function CreateTaskPage() {
                 inputMode="numeric"
                 min={1}
                 max={500}
-                defaultValue={6}
+                defaultValue={revise?.estimated_hours ?? 6}
                 className={styles.control}
               />
             </Field>
@@ -268,7 +318,7 @@ export default function CreateTaskPage() {
 
         <footer className={styles.footer}>
           <Button type="submit" variant="dark" busy={isPending} disabled={locked} className={styles.action}>
-            Publish task
+            {revise ? 'Resubmit for review' : 'Publish task'}
           </Button>
         </footer>
       </form>

@@ -2,9 +2,7 @@ const { Task, Company, TaskAsset } = require('../models');
 const { ForbiddenError, NotFoundError, BadRequestError } = require('../utils/httpExceptions');
 const { ROLE } = require('../constants/authConstants');
 const { TASK_STATUS } = require('../constants/taskConstants');
-const { checkTaskType, checkDifficulty } = require('../utils/taskUtils');
-
-const MAX_TASK_ID = 2147483647; // largest value the integer id column can hold
+const { checkTaskType, checkDifficulty, parseTaskId } = require('../utils/taskUtils');
 
 const TASK_ATTRIBUTES = ['id', 'title', 'description', 'difficulty', 'estimated_hours', 'status', 'task_type', 'created_at'];
 
@@ -27,13 +25,6 @@ function optionalFilter(value, field, check) {
     }
     check(value);
     return value;
-}
-
-function parseTaskId(value) {
-    if (typeof value !== 'string' || !/^\d+$/.test(value) || Number(value) < 1 || Number(value) > MAX_TASK_ID) {
-        throw new BadRequestError('Invalid task id');
-    }
-    return Number(value);
 }
 
 async function companyIdOf(userId) {

@@ -93,6 +93,23 @@ router.post('/post-task', requireVerified, postTaskLimiter, upload.single('file'
     companyController.postTask,
 ));
 
+router.post('/revise-task/:id', requireVerified, postTaskLimiter, upload.single('file'), createHandler(
+    (req) => {
+        const body = req.body || {};
+        return {
+            userId: req.user.userId,
+            taskId: req.params.id,
+            taskTitle: body.taskTitle,
+            taskDesc: body.taskDesc,
+            taskType: body.taskType,
+            difficulty: body.difficulty,
+            estimated_hours: body.estimated_hours,
+            file: req.file,
+        };
+    },
+    companyController.reviseTask,
+));
+
 router.get('/task-assets/:id', createHandler(
     (req) => ({
         id: req.params.id,
@@ -113,13 +130,5 @@ router.get('/student-profile/:id', createHandler(
     }),
     companyController.fetchProfileForView,
 ));
-
-router.post('/send-nda', createHandler(
-    (req) => ({
-        email: req.body.email,
-        taskId: req.body.taskId,
-    }),
-    companyController.selectStudent,
-))
 
 module.exports = router;

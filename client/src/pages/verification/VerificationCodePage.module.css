@@ -131,6 +131,12 @@
   text-decoration: underline;
 }
 
+.link:disabled {
+  color: var(--color-muted);
+  cursor: default;
+  text-decoration: none;
+}
+
 @media (width < 480px) {
   .digits {
     gap: 6px;

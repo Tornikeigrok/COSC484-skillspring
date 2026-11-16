@@ -264,6 +264,9 @@ export default function ManageTaskPage() {
               <li className={styles.timelineRejected}>
                 <strong>Task Rejected</strong>
                 <small>please revise your zip</small>
+                <Link className={links.textLink} to={`/business/tasks/${id}/revise`}>
+                  Revise the zip
+                </Link>
               </li>
               }
             </ol>

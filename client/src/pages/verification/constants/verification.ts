@@ -51,3 +51,6 @@ export const COPY = {
       'Confirm you work at the company before posting tasks, so students know every brief is real.',
   },
 } as const;
+
+// the server refuses a second resend within 60 seconds, so the button waits as well
+export const RESEND_COOLDOWN_SECONDS = 60;

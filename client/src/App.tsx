@@ -18,6 +18,7 @@ const ProposalFormPage = lazy(() => import('./pages/proposal/ProposalFormPage'))
 const ProposalsPage = lazy(() => import('./pages/proposal/ProposalsPage'));
 const BusinessTasksPage = lazy(() => import('./pages/business-tasks/BusinessTasksPage'));
 const CreateTaskPage = lazy(() => import('./pages/business-tasks/CreateTaskPage'));
+const ReviseTaskPage = lazy(() => import('./pages/business-tasks/ReviseTaskPage'));
 const ManageTaskPage = lazy(() => import('./pages/business-tasks/ManageTaskPage'));
 const AssignmentsPage = lazy(() => import('./pages/assignments/AssignmentsPage'));
 const AssignmentPage = lazy(() => import('./pages/assignments/AssignmentPage'));
@@ -101,6 +102,7 @@ export default function App() {
                 <Route path="/business" element={<HomePage />} />
                 <Route path="/business/tasks" element={<BusinessTasksPage />} />
                 <Route path="/business/tasks/new" element={<CreateTaskPage />} />
+                <Route path="/business/tasks/:id/revise" element={<ReviseTaskPage />} />
                 <Route path="/business/tasks/:id/proposals" element={<ManageTaskPage />} />
               </Route>
             </Route>

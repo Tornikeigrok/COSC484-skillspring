@@ -107,7 +107,7 @@ function TaskRow({
           •••
         </span>
       )}
-      {rejected && <RejectionNotice reasons={task.rejected_reason ?? []} />}
+      {rejected && <RejectionNotice taskId={task.id} reasons={task.rejected_reason ?? []} />}
     </li>
   );
 }

@@ -50,6 +50,16 @@ function checkFile(file) {
 }
 
 
+const MAX_TASK_ID = 2147483647; // largest value the integer id column can hold
+
+// Task ids arrive as strings in the URL
+function parseTaskId(value) {
+    if (typeof value !== 'string' || !/^\d+$/.test(value) || Number(value) < 1 || Number(value) > MAX_TASK_ID) {
+        throw new BadRequestError('Invalid task id');
+    }
+    return Number(value);
+}
+
 module.exports = {
     checkTitle,
     checkDesc,
@@ -57,4 +67,5 @@ module.exports = {
     checkEstHrs,
     checkDifficulty,
     checkFile,
+    parseTaskId,
 }

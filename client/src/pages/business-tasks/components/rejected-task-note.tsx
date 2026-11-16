@@ -6,7 +6,7 @@ import { Icon } from './Icon';
 const ALERT_ICON = 'M12 3 2 20h20zM12 10v4M12 17h.01';
 
 // shown under a task that automated review refused to publish
-function RejectionNotice({ reasons }: { reasons: string[] }) {
+function RejectionNotice({ taskId, reasons }: { taskId: number; reasons: string[] }) {
   return (
     <div className={styles.rejection} role="note" aria-label="Why this task was not published">
       <Icon d={ALERT_ICON} className={styles.rejectionIcon} />
@@ -24,11 +24,11 @@ function RejectionNotice({ reasons }: { reasons: string[] }) {
         )}
         <div className={styles.rejectionFooter}>
           <p>
-            Remove or rewrite the flagged content in the description and the ZIP, then post the
-            task again.
+            Remove or rewrite the flagged content in the description and the ZIP, then resubmit
+            this task.
           </p>
-          <Link className={buttonClass('dark', styles.rejectionAction)} to="/business/tasks/new">
-            Post revised task
+          <Link className={buttonClass('dark', styles.rejectionAction)} to={`/business/tasks/${taskId}/revise`}>
+            Revise the zip
           </Link>
         </div>
       </div>

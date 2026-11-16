@@ -15,21 +15,39 @@ export interface Task {
 /**
  * req can only ever have one shape, thus we wrap everything in formData 
  */
+function toTaskForm(body: Task) {
+    const form = new FormData();
+    form.append('taskTitle', body.taskTitle);
+    form.append('taskDesc', body.taskDesc);
+    form.append('taskType', body.taskType);
+    form.append('difficulty', body.difficulty);
+    form.append('estimated_hours', String(body.estimated_hours));
+    form.append('file', body.file);
+    return form;
+}
+
 export function usePostTask() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (body: Task) => {
-            const form = new FormData();
-            form.append('taskTitle', body.taskTitle);
-            form.append('taskDesc', body.taskDesc);
-            form.append('taskType', body.taskType);
-            form.append('difficulty', body.difficulty);
-            form.append('estimated_hours', String(body.estimated_hours));
-            form.append('file', body.file);
-            return apiRequest('/api/company/post-task', 'POST', form);
-        },
+        mutationFn: async (body: Task) => apiRequest('/api/company/post-task', 'POST', toTaskForm(body)),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['company-tasks'] });
+        },
+    });
+}
+
+/**
+ * Sends a rejected task back to review with a new zip. The task keeps its id,
+ * so nothing new is created and its proposals/links stay valid.
+ */
+export function useReviseTask() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, ...body }: Task & { id: number }) =>
+            apiRequest(`/api/company/revise-task/${id}`, 'POST', toTaskForm(body)),
+        onSuccess: (_data, { id }) => {
+            queryClient.invalidateQueries({ queryKey: ['company-tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/company/task-assets', String(id)] });
         },
     });
 }

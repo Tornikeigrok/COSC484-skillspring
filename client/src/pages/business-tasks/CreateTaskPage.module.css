@@ -381,6 +381,14 @@
   line-height: 1.6;
 }
 
+.verifyBanner ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .page .verifyAction {
   flex-shrink: 0;
   min-height: 32px;

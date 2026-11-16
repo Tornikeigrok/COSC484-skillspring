@@ -52,3 +52,17 @@ export function useValidateCompanyCode() {
      }
   });
 }
+
+/* Resend the code: both endpoints send a new code to the email from the original form */
+
+export function useResendStudentCode() {
+  return useMutation({
+    mutationFn: async () => await apiRequest('/api/student/resend-verification', 'POST'),
+  });
+}
+
+export function useResendCompanyCode() {
+  return useMutation({
+    mutationFn: async () => await apiRequest('/api/company/resend-verification', 'POST'),
+  });
+}

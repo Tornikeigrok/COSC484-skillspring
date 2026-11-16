@@ -8,8 +8,9 @@ import styles from './VerificationCodePage.module.css';
 import verifyStyles from './Verification.module.css';
 import { VerificationShell } from './components/VerificationShell';
 import { Icon } from './components/Icon';
-import { ICONS, STEPS } from './constants/verification';
-import { useValidateCode, useValidateCompanyCode } from './hooks';
+import { ICONS, RESEND_COOLDOWN_SECONDS, STEPS } from './constants/verification';
+import { useResendCompanyCode, useResendStudentCode, useValidateCode, useValidateCompanyCode } from './hooks';
+import { useCooldown } from './hooks/use-cooldown';
 import { useCurrentUser } from '../home/hooks/use-profile';
 
 const LENGTH = 6;
@@ -53,6 +54,24 @@ export const VerificationCodePage = () => {
   // the mutation for this user's role; everything below reads from it
   const validation = student ? studentValidation : companyValidation;
 
+  const studentResend = useResendStudentCode();
+  const companyResend = useResendCompanyCode();
+  const resend = student ? studentResend : companyResend;
+  const cooldown = useCooldown();
+  const resendBlocked = !user || resend.isPending || cooldown.remaining > 0;
+
+  function resendCode() {
+    if (resendBlocked) return;
+    resend.mutate(undefined, {
+      onSuccess: () => {
+        // the server replaced the old code, so anything already typed is out of date
+        setDigits(Array(LENGTH).fill(''));
+        inputs.current[0]?.focus();
+        cooldown.start(RESEND_COOLDOWN_SECONDS);
+      },
+    });
+  }
+
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     // role unknown until the profile loads; don't guess which endpoint to hit
@@ -90,8 +109,11 @@ export const VerificationCodePage = () => {
         <form
           className={styles.form}
           onSubmit={submit}
-          // editing the code clears the last "wrong code" error
-          onChange={() => validation.isError && validation.reset()}
+          // editing the code clears the last "wrong code" error and the resend notice
+          onChange={() => {
+            if (validation.isError) validation.reset();
+            if (!resend.isIdle) resend.reset();
+          }}
           noValidate
         >
           <fieldset className={styles.fieldset}>
@@ -131,10 +153,25 @@ export const VerificationCodePage = () => {
             </p>
           )}
 
+          {resend.isError && (
+            <p className={cx(notice.notice, notice.error)} role="alert">
+              {resend.error.message}
+            </p>
+          )}
+          {resend.isSuccess && (
+            <p className={cx(notice.notice, notice.success)} role="status">
+              We sent you a new code. The old one no longer works.
+            </p>
+          )}
+
           <p className={styles.resend}>
             Didn't get it? Check your spam folder or{' '}
-            <button type="button" className={styles.link}>
-              resend the code
+            <button type="button" className={styles.link} onClick={resendCode} disabled={resendBlocked}>
+              {resend.isPending
+                ? 'sending…'
+                : cooldown.remaining > 0
+                  ? `resend in ${cooldown.remaining}s`
+                  : 'resend the code'}
             </button>
           </p>
 

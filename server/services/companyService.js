@@ -1,4 +1,4 @@
-const { sequelize, User, Company, Task, TaskAsset, Student, Proposal } = require('../models');
+const { sequelize, User, Company, Task, TaskAsset, Student } = require('../models');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
 const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
 const bcrypt = require('bcrypt');
@@ -7,11 +7,9 @@ const { websiteDomain, isSameOrSubdomain, isFreeEmailDomain, sameWebsite } = req
 const redis = require('../utils/redisClient');
 const crypto = require('crypto');
 const { queueVerificationEmail } = require('../queues/emailQueue');
-const { queueNdaEmail } = require('../queues/ndaQueue');
 const { VERIFICATION_STATUS, verificationCodeFormat } = require('../constants/authConstants');
-const { checkTitle, checkDesc, checkEstHrs, checkTaskType, checkFile, checkDifficulty } =require('../utils/taskUtils');
+const { checkTitle, checkDesc, checkEstHrs, checkTaskType, checkFile, checkDifficulty, parseTaskId } =require('../utils/taskUtils');
 const { TASK_STATUS, ASSET_TYPE, TASK_UPLOAD_DIR, AUTOMATION_FAILED, MAX_FILE_SIZE } = require('../constants/taskConstants');
-const { PROPOSAL_STATUS } = require('../constants/proposalConstants');
 const path = require('path');
 const fs = require('fs/promises');
 const { queueTaskCheck } = require('../queues/taskQueue');
@@ -103,6 +101,48 @@ async function sendEmailVerif(userId, cleanEmail, website, description) {
     await queueVerificationEmail({ data: { email: 'tokoahari@gmail.com' }, code, type: 'company' });
 
     return { data: { verification_email_sent: true }};
+}
+
+// Rejects archives that are not valid zips or that hold a file over the per-file limit
+function checkZipContents(file) {
+    let entries;
+    try {
+        entries = new AdmZip(file.buffer).getEntries();
+    } catch (err) {
+        throw new BadRequestError('File is not a valid zip');
+    }
+
+    for (const entry of entries) {
+        if (entry.isDirectory) continue;
+        if (entry.header.size > MAX_FILE_SIZE) {
+           throw new BadRequestError(`${entry.entryName} is over 10 MB`);
+        }
+    }
+}
+
+/**
+ * Create random UUID for each zip so names don't collide
+ * mkdir will create a folder in which all zips will go
+ * each zip then has to be written into the created folder.
+ */
+async function saveZip(file) {
+    const storedFilename = `${crypto.randomUUID()}.zip`;
+    await fs.mkdir(TASK_UPLOAD_DIR, { recursive: true });
+    await fs.writeFile(path.join(TASK_UPLOAD_DIR, storedFilename), file.buffer);
+    return storedFilename;
+}
+
+// Only the owner can revise, and only a task that automated review rejected
+function assertRevisable(task, companyId) {
+    if (!task) {
+        throw new NotFoundError('Task not found');
+    }
+    if (task.company_id !== companyId) {
+        throw new ForbiddenError('You do not have access to this task');
+    }
+    if (task.status !== TASK_STATUS.REJECTED) {
+        throw new BadRequestError('Only rejected tasks can be revised');
+    }
 }
 
 module.exports = {
@@ -280,31 +320,10 @@ module.exports = {
            throw new NotFoundError('Company profile not found');
         }
 
-        // if the file in zip is > 10 MB reject it
-        let entries;
-        try {
-            entries = new AdmZip(file.buffer).getEntries();
-        } catch (err) {
-            throw new BadRequestError('File is not a valid zip');
-        }
+        checkZipContents(file);
 
-        for (const entry of entries) {
-            if (entry.isDirectory) continue;
-            if (entry.header.size > MAX_FILE_SIZE) {
-               throw new BadRequestError(`${entry.entryName} is over 10 MB`);
-            }
-        }
-
-        /**
-         * Create random UUID for each zip so names don't collide
-         * join it using path.join which gives us the full path to the file which we will insert into folder
-         * mkdir will create a folder in which all zips will go
-         * each zip then had to be written into the created folder.
-         */
-        const storedFilename = `${crypto.randomUUID()}.zip`;
+        const storedFilename = await saveZip(file);
         const fileForZip = path.join(TASK_UPLOAD_DIR, storedFilename);
-        await fs.mkdir(TASK_UPLOAD_DIR, { recursive: true });
-        await fs.writeFile(fileForZip, file.buffer);
         
 
         let taskCreated;
@@ -348,6 +367,86 @@ module.exports = {
 
         return { data: { fileStored: true, id: taskCreated.id }};
     },
+
+    // Replaces the zip (and details) of a rejected task and sends it back to automated review
+    reviseTask: async (userId, rawTaskId, taskTitle, taskDesc, taskType, difficulty, estimated_hours, file) => {
+        const taskId = parseTaskId(rawTaskId);
+        checkFile(file);
+        checkTaskType(taskType);
+        checkDifficulty(difficulty);
+
+        const title = checkTitle(taskTitle);
+        const desc = checkDesc(taskDesc);
+        const hrs = checkEstHrs(estimated_hours);
+
+        const company = await Company.findOne({
+            attributes: ['id'],
+            where: { user_id: userId },
+        });
+
+        if (!company) {
+           throw new NotFoundError('Company profile not found');
+        }
+
+        // Fail before the upload is written to disk
+        assertRevisable(await Task.findByPk(taskId, { attributes: ['id', 'company_id', 'status'] }), company.id);
+
+        checkZipContents(file);
+        const storedFilename = await saveZip(file);
+
+        let oldStoredFilename;
+        try {
+            await sequelize.transaction(async (t) => {
+                // Locked and checked again, so two requests can't both revise the same task
+                const task = await Task.findByPk(taskId, { transaction: t, lock: t.LOCK.UPDATE });
+                assertRevisable(task, company.id);
+
+                await task.update({
+                    title,
+                    description: desc,
+                    difficulty,
+                    estimated_hours: hrs,
+                    task_type: taskType,
+                    status: TASK_STATUS.IN_REVIEW,
+                    rejected_reason: null,
+                }, { transaction: t });
+
+                const newAsset = {
+                    original_filename: file.originalname,
+                    stored_filename: storedFilename,
+                    file_type: ASSET_TYPE.ZIP,
+                    uploaded_at: new Date(),
+                };
+                const asset = await TaskAsset.findOne({ where: { task_id: taskId }, transaction: t });
+                if (asset) {
+                    oldStoredFilename = asset.stored_filename;
+                    await asset.update(newAsset, { transaction: t });
+                } else {
+                    await TaskAsset.create({ task_id: taskId, ...newAsset }, { transaction: t });
+                }
+            });
+        } catch (err) {
+            await fs.rm(path.join(TASK_UPLOAD_DIR, storedFilename), { force: true });
+            throw err;
+        }
+
+        // The rejected zip is no longer referenced by anything
+        if (oldStoredFilename) {
+            await fs.rm(path.join(TASK_UPLOAD_DIR, oldStoredFilename), { force: true });
+        }
+
+        try {
+            await queueTaskCheck({ taskId, storedFilename });
+        } catch (err) {
+            console.error(err);
+            await Task.update(
+                { status: TASK_STATUS.ESCALATED, rejected_reason: AUTOMATION_FAILED },
+                { where: { id: taskId } }
+            );
+        }
+
+        return { data: { fileStored: true, id: taskId }};
+    },
     /**
      * @param {*} id from tasks table, joined with task_assets 
      */
@@ -382,39 +481,16 @@ module.exports = {
     fetchProfileForView: async (studentId) => {
         const userInfo = await Student.findByPk(studentId, 
             { 
-                attributes: ['user_id', 'github_url', 'university', 'graduation_year', 'verification_status', 'skills', 'bio'], 
+                attributes: ['user_id', 'github_url', 'university', 'graduation_year', 'verification_status', 'skills'], 
                 include: {
                     model: User,
-                    attributes: ['first_name', 'last_name', 'role', 'email'],
+                    attributes: ['first_name', 'last_name', 'role'],
                 }
             },
         );
+
+        console.log('data sent', userInfo);
+
         return { data: userInfo };
-    },
-    // When company selects student, we send out an email. 
-    // Include taskId and student email so we send email to that address
-    selectStudent: async (email, taskId) => {
-        
-        const checkTask = await Task.findByPk(taskId);
-        if (checkTask.status !== TASK_STATUS.OPEN) {
-            throw new BadRequestError('Task not open to assign a student');
-        }
-        
-        await checkTask.update(
-            { status: TASK_STATUS.IN_PROGRESS },
-            { where: { id: taskId }},
-        );
-
-        // Update proposals so studnets see it go to in-progress
-        // Initially nda is not signed
-        await Proposal.update(
-            { status: PROPOSAL_STATUS.ACCEPTED, nda_signed: false },
-            { where: { task_id: taskId }}
-        );
-
-        // this will send out the nda email
-        await queueNdaEmail({ id: taskId, email, link: `${process.env.STUDENT_NDA_SIGN_PAGE}${taskId}` });
-
-        return { data: { success: true, message: 'NDA email sent'} };
     },
 };

@@ -74,6 +74,14 @@ router.get('/github', async (req, res, next) => {
         state,
     });
 
+    const query = req.query.next;
+    res.cookie('next-deeplink', query, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 1 * 60 * 1000,
+    })
+
     res.redirect(`https://github.com/login/oauth/authorize?${params}`);
 });
 
@@ -166,7 +174,12 @@ router.get('/github/callback', async (req, res, next) => {
 
     res.cookie('token', generateToken(user), TOKEN_COOKIE_OPTIONS);
 
-    return res.redirect(`${process.env.FRONTEND_URL}/student`);
+    const query = req.cookies['next-deeplink'];
+    res.clearCookie('next-deeplink');
+
+    const safe = query?.startsWith('/') && !query.includes('//') ? query : '/student';
+
+    return res.redirect(`${process.env.FRONTEND_URL}${safe}`);
 });
 
 

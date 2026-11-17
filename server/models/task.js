@@ -42,7 +42,11 @@ module.exports = (sequelize, DataTypes) => {
     rejected_reason: {
       type: DataTypes.ARRAY(DataTypes.TEXT),
       allowNull: true
-    }
+    },
+    deadline: {
+      type: DataTypes.DATE,
+      allowNull: false
+    },
   }, {
     sequelize,
     modelName: 'Task',

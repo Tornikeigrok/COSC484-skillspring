@@ -39,6 +39,17 @@ function checkEstHrs(value) {
     return hours;
 }
 
+function checkDeadline(value) {
+    const deadline = new Date(value);
+    if (typeof value !== 'string' || !value.trim() || isNaN(deadline)) {
+        throw new BadRequestError('Deadline must be a valid date');
+    }
+    if (deadline <= new Date()) {
+        throw new BadRequestError('Deadline must be in the future');
+    }
+    return deadline;
+}
+
 function checkFile(file) {
     if (!file) {
         throw new BadRequestError('Zip file is required');
@@ -65,6 +76,7 @@ module.exports = {
     checkDesc,
     checkTaskType,
     checkEstHrs,
+    checkDeadline,
     checkDifficulty,
     checkFile,
     parseTaskId,

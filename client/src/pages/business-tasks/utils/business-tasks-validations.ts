@@ -29,6 +29,11 @@ const taskFields = {
     .int('enter a whole number of hours')
     .min(1, 'estimated hours must be at least 1')
     .max(500, 'estimated hours must be at most 500'),
+  // YYYY-MM-DD from <input type="date">, due at the end of that local day
+  deadline: z
+    .string()
+    .min(1, 'pick a deadline')
+    .refine((day) => new Date(`${day}T23:59:59`) > new Date(), 'deadline must be in the future'),
   file: z.file('please upload a zip file')
         .max(50 * 1024 * 1024, 'zip must be under 50 MB')
         .superRefine(async (zip, ctx) => {

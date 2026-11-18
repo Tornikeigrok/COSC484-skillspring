@@ -10,6 +10,7 @@ export interface Task {
     taskType: TaskType;
     difficulty: keyof typeof DIFFICULTY_LABELS;
     estimated_hours: number;
+    deadline: string;
     file: File;
 }
 
@@ -23,6 +24,7 @@ function toTaskForm(body: Task) {
     form.append('taskType', body.taskType);
     form.append('difficulty', body.difficulty);
     form.append('estimated_hours', String(body.estimated_hours));
+    form.append('deadline', body.deadline);
     form.append('file', body.file);
     return form;
 }
@@ -59,6 +61,8 @@ export interface CompanyTask {
     description: string;
     difficulty: keyof typeof DIFFICULTY_LABELS;
     estimated_hours: number | null;
+    // null on tasks posted before deadlines existed
+    deadline: string | null;
     status: string;
     task_type: TaskType;
     created_at: string;

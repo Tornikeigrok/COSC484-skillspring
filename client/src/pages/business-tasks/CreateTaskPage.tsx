@@ -52,6 +52,8 @@ export default function CreateTaskPage({ revise }: { revise?: CompanyTask }) {
           task_type: revise.task_type,
           difficulty: revise.difficulty,
           estimated_hours: revise.estimated_hours ?? 6,
+          // en-CA formats as YYYY-MM-DD in local time, which is what the date input wants
+          deadline: revise.deadline ? new Date(revise.deadline).toLocaleDateString('en-CA') : '',
         }
       : undefined,
   });
@@ -81,6 +83,7 @@ export default function CreateTaskPage({ revise }: { revise?: CompanyTask }) {
       taskType: data.task_type,
       difficulty: data.difficulty,
       estimated_hours: data.estimated_hours,
+      deadline: new Date(`${data.deadline}T23:59:59`).toISOString(),
       file: data.file,
     };
     // nothing else shows a failed request (e.g. rate limit, invalid zip), so say what the server said
@@ -301,6 +304,16 @@ export default function CreateTaskPage({ revise }: { revise?: CompanyTask }) {
                 min={1}
                 max={500}
                 defaultValue={revise?.estimated_hours ?? 6}
+                className={styles.control}
+              />
+            </Field>
+
+            <Field error={errors.deadline?.message} label="Deadline *" id="deadline">
+              <Input
+                {...register('deadline')}
+                id="deadline"
+                type="date"
+                min={new Date().toLocaleDateString('en-CA')}
                 className={styles.control}
               />
             </Field>

@@ -167,6 +167,7 @@ const rejectedTask: CompanyTask = {
   description: 'Create a responsive landing page for a small bakery with a hero section and a menu list.',
   difficulty: 'easy',
   estimated_hours: 12,
+  deadline: '2099-06-01T12:00:00.000Z',
   status: 'rejected',
   task_type: 'api',
   created_at: '2026-02-01T00:00:00.000Z',
@@ -247,6 +248,7 @@ test('resubmitting sends the SAME task id with the edited fields and the new zip
   expect(form.get('taskType')).toBe('api');
   expect(form.get('difficulty')).toBe('easy');
   expect(form.get('estimated_hours')).toBe('12');
+  expect(new Date(form.get('deadline') as string).toLocaleDateString('en-CA')).toBe('2099-06-01');
   expect((form.get('file') as File).name).toBe('starter-v2.zip');
   expect(successSpy).toHaveBeenCalledWith('Task resubmitted for review');
 });

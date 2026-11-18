@@ -88,6 +88,7 @@ export default function ManageTaskPage() {
     [PATHS.code, TASK_TYPE_LABELS[task.task_type]?.label ?? task.task_type, 'Type'],
     [PATHS.layers, DIFFICULTY_LABELS[task.difficulty] ?? task.difficulty, 'Difficulty'],
     [PATHS.clock, task.estimated_hours !== null ? formatEstimate(task.estimated_hours) : '—', 'Estimate'],
+    [PATHS.calendar, task.deadline ? <DateLabel key="due" value={task.deadline} /> : '—', 'Deadline'],
     [PATHS.calendar, <DateLabel key="posted" value={task.created_at} />, 'Posted'],
   ] as const;
 

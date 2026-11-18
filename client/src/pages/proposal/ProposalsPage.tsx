@@ -210,7 +210,7 @@ function ProposalRow({ proposal: p }: { proposal: MyProposal }) {
       </ol>
 
       {p.status === 'accepted' && p.nda_signed ? (
-        <Link to="/assignments" className={styles.cta}>
+        <Link to={`/assignment/${task?.id}`} className={styles.cta}>
           Start assignment
           <Svg d={ICONS.arrow} size={14} />
         </Link>

@@ -28,6 +28,8 @@ const VerificationPage = lazy(() => import('./pages/verification/VerificationPag
 const VerificationCodePage = lazy(() => import('./pages/verification/VerificationCodePage'));
 const NdaSigningPage = lazy(() => import('./pages/nda/NdaSigningPage'));
 const NdaDashboardPage = lazy(() => import('./pages/nda/NdaDashboardPage'));
+const SelectedTask = lazy(() => import('./pages/assignments/SelectedTask'));
+const SubmitWorkPage = lazy(() => import('./pages/assignments/SubmitWorkPage'));
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -108,6 +110,8 @@ export default function App() {
                 <Route path="/student" element={<HomePage />} />
                 <Route path="/student/proposals" element={<ProposalsPage />} />
                 <Route path="/tasks/:id/propose" element={<ProposalFormPage />} />
+                <Route path='/assignment/:taskId' element={<SelectedTask />}/>
+                <Route path='/assignment/:taskId/submit' element={<SubmitWorkPage />}/>
               </Route>
             </Route>
             <Route element={<RequireAuth role="company" />}>

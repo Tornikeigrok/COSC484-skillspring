@@ -1,0 +1,281 @@
+.page {
+  display: grid;
+  gap: 20px;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--color-ink);
+}
+
+.header {
+  display: grid;
+  gap: 4px;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 20px;
+}
+
+.card {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+/* dropzone */
+
+.dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 18px;
+  border: 1px dashed var(--color-dashed);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-canvas);
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.dropzone:hover,
+.dropzone:focus-within {
+  border-color: var(--color-brand);
+}
+
+.dropzone:focus-within {
+  outline: 3px solid var(--color-brand-soft);
+}
+
+.filled {
+  border-style: solid;
+  border-color: var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.fileInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dropIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-muted);
+}
+
+.filled .dropIcon {
+  color: var(--color-brand);
+}
+
+.dropText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.dropText strong {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  background: none;
+  color: var(--color-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.remove:hover {
+  border-color: #f3c2c2;
+  color: #c53030;
+}
+
+.notes {
+  font-size: 13px;
+}
+
+.confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.confirm input {
+  margin: 2px 0 0;
+  accent-color: var(--color-brand);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-line);
+}
+
+.cancel {
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.cancel:hover {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+.submit {
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
+/* side */
+
+.side {
+  display: grid;
+  gap: 12px;
+}
+
+.panel {
+  padding: 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.panelTitle {
+  margin: 0 0 12px;
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.checklist,
+.steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.checklist li {
+  display: flex;
+  gap: 8px;
+}
+
+.check {
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  color: #18794e;
+}
+
+.steps {
+  counter-reset: step;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  column-gap: 8px;
+  counter-increment: step;
+}
+
+.steps li::before {
+  display: grid;
+  grid-row: span 2;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--color-line);
+  border-radius: 50%;
+  color: var(--color-ink);
+  content: counter(step);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.steps strong {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

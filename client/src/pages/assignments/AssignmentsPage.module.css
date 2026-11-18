@@ -1,0 +1,135 @@
+.page {
+  display: grid;
+  gap: 20px;
+}
+
+.header {
+  display: grid;
+  gap: 4px;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+/* table */
+
+.table {
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 90px 80px 90px;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  color: var(--color-muted);
+  font-size: 13px;
+  text-decoration: none;
+  transition: background-color 120ms ease;
+}
+
+.row + .row {
+  border-top: 1px solid var(--color-line);
+}
+
+a.row:hover {
+  background-color: var(--color-canvas);
+}
+
+a.row:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
+}
+
+.head {
+  padding-block: 9px;
+  background-color: var(--color-canvas);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.logo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  color: var(--color-ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.taskText {
+  display: grid;
+  min-width: 0;
+}
+
+.taskTitle,
+.company {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskTitle {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.company {
+  font-size: 12px;
+}
+
+.due {
+  display: grid;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dueDate {
+  color: var(--color-ink);
+  font-size: 13px;
+}
+
+.soon {
+  color: #b45309;
+}
+
+.overdue {
+  color: #c2410c;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .hideSm {
+    display: none;
+  }
+}

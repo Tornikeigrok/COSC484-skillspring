@@ -13,4 +13,13 @@ module.exports = {
     companyTaskProposals: async (input) => {
         return await proposalService.companyTaskProposals(input.taskId);
     },
+    signNda: async (input) => {
+        return await proposalService.signSnda(input.userId, input.taskId, input.firstName, input.lastName);
+    },
+    assignedTaskDetails: async (input) => {
+        return await proposalService.assignedTaskDetails(input.userId, input.taskId);
+    },
+    displayStudentWork: async (input) => {
+        return await proposalService.displayStudentWork(input.userId);
+    },
 };

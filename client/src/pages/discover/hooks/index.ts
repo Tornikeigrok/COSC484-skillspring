@@ -10,6 +10,7 @@ export interface AvailableTask {
   description: string;
   difficulty: (typeof DIFFICULTIES)[number];
   estimated_hours: number | null;
+  deadline: string | null;
   status: TaskStatus;
   task_type: TaskType;
   created_at: string;

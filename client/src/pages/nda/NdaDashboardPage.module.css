@@ -158,6 +158,25 @@
   font-weight: 500;
 }
 
+.nameRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.signHint {
+  margin: -8px 0 0;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: var(--line-height-xs);
+}
+
+@media (max-width: 480px) {
+  .nameRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* signed state */
 
 .done {

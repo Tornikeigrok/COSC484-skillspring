@@ -88,6 +88,7 @@ router.post('/post-task', requireVerified, postTaskLimiter, upload.single('file'
         taskType: req.body.taskType,
         difficulty: req.body.difficulty,
         estimated_hours: req.body.estimated_hours,
+        deadline: req.body.deadline,
         file: req.file,
     }),
     companyController.postTask,
@@ -104,6 +105,7 @@ router.post('/revise-task/:id', requireVerified, postTaskLimiter, upload.single(
             taskType: body.taskType,
             difficulty: body.difficulty,
             estimated_hours: body.estimated_hours,
+            deadline: body.deadline,
             file: req.file,
         };
     },

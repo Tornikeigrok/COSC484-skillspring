@@ -26,38 +26,32 @@ function readEntry(entry) {
     return null;
 }
 
-function inspectNewtask() {
-    const work = new Worker('just-posted-task-queue', async job => {
-        const { taskId, storedFilename } = job.data;
+function checkFile(file) {
+    const validateFile = new AdmZip(path.join(TASK_UPLOAD_DIR, file));
+    const entries = validateFile.getEntries();
+    if (entries.length > MAX_FILE_COUNT) {
+        throw new UnrecoverableError('Zip has too many files');
+    }
 
-        const zip = new AdmZip(path.join(TASK_UPLOAD_DIR, storedFilename));
+    let totalSize = 0;
+    for (const entry of entries) {
+        if (entry.isDirectory)continue;
 
-        const entries = zip.getEntries();
-
-        if (entries.length > MAX_FILE_COUNT) {
-            throw new UnrecoverableError('Zip has too many files');
+        if (entry.header.size > MAX_FILE_SIZE) {
+            throw new UnrecoverableError(`${entry.entryName} is too large`);
         }
 
-        let totalSize = 0
-        for (const entry of entries) {
-            if (entry.isDirectory) continue;
-
-            if (entry.header.size > MAX_FILE_SIZE) {
-                throw new UnrecoverableError(`${entry.entryName} is too large`);
-            }
-            
-            totalSize += entry.header.size;
-            if (totalSize > MAX_TOTAL_SIZE) {
-               throw new UnrecoverableError('Zip is too large when unpacked');
-            }
+        totalSize += entry.header.size;
+        if (totalSize > MAX_TOTAL_SIZE) {
+            throw new UnrecoverableError('Zip is too large when unpacked');
         }
-
-        let totalRead = 0;
-        let hasUnscanned = false;
-        const hardFlags = [];
-        const softFlags = [];
-        const textFiles = [];
-        for (const entry of entries) {
+    }
+    let totalRead = 0;
+    let hasUnscanned = false;
+    const hardFlags = [];
+    const softFlags = [];
+    const textFiles = [];
+    for (const entry of entries) {
             if (entry.isDirectory) continue;
 
             const name = entry.entryName.replace(/\\/g, '/').toLowerCase();
@@ -106,43 +100,47 @@ function inspectNewtask() {
                     hardFlags.push(`${entry.entryName} is not valid JSON`);
                 }
             }
-        }
-       
+    }
+    return { hardFlags, softFlags, textFiles, hasUnscanned };
+}
+
+function inspectNewtask() {
+    const work = new Worker('just-posted-task-queue', async job => {
+        const { taskId, storedFilename } = job.data;
+
+        const { hardFlags, softFlags, textFiles, hasUnscanned } = checkFile(storedFilename);
+
         if (hardFlags.length > 0) {
-          await Task.update(
-            {
-               status: TASK_STATUS.REJECTED,
-               rejected_reason: hardFlags,
-            }, { where: { id: taskId }}
-          );
-          return;
+            await Task.update(
+                { status: TASK_STATUS.REJECTED, rejected_reason: hardFlags },
+                { where: { id: taskId } }
+            );
+            return;
         }
 
         const aiReview = await reviewTask(softFlags, textFiles);
-        if (aiReview.verdict === 'approve') {
-            await Task.update(
-                hasUnscanned 
-                 ?
-                { status: TASK_STATUS.ESCALATED, rejected_reason: UNSCANNED_CODE }
-                : { status: TASK_STATUS.OPEN },
-              { where: { id: taskId } }
-            );
-        }
-        if (aiReview.verdict === 'reject') {
-            await Task.update(
-                {
-                    status: TASK_STATUS.REJECTED,
-                    rejected_reason: aiReview.reasons,
-                }, { where: { id: taskId }}
-            );
-        }
-        if (aiReview.verdict === 'escalate') {
-            await Task.update(
-                {
-                    status: TASK_STATUS.ESCALATED,
-                    rejected_reason: aiReview.reasons,
-                }, { where: { id: taskId }}
-            );
+
+        switch (aiReview.verdict) {
+            case 'approve':
+                await Task.update(
+                    hasUnscanned
+                        ? { status: TASK_STATUS.ESCALATED, rejected_reason: UNSCANNED_CODE }
+                        : { status: TASK_STATUS.OPEN },
+                    { where: { id: taskId } }
+                );
+                break;
+            case 'reject':
+                await Task.update(
+                    { status: TASK_STATUS.REJECTED, rejected_reason: aiReview.reasons },
+                    { where: { id: taskId } }
+                );
+                break;
+            case 'escalate':
+                await Task.update(
+                    { status: TASK_STATUS.ESCALATED, rejected_reason: aiReview.reasons },
+                    { where: { id: taskId } }
+                );
+                break;
         }
     }, { connection: getRedisConnection() });
 
@@ -151,12 +149,12 @@ function inspectNewtask() {
         if (!job) return;
         const finalAttempt = err instanceof UnrecoverableError || job.attemptsMade >= job.opts.attempts;
         if (finalAttempt) {
-           await Task.update(
-              { status: TASK_STATUS.ESCALATED, rejected_reason: ['Automated review could not complete'] },
-              { where: { id: job.data.taskId } }
-           ).catch(console.error);
-    }
-    })
+            await Task.update(
+                { status: TASK_STATUS.ESCALATED, rejected_reason: ['Automated review could not complete'] },
+                { where: { id: job.data.taskId } }
+            ).catch(console.error);
+        }
+    });
 
     return work;
 }
@@ -164,4 +162,5 @@ function inspectNewtask() {
 
 module.exports = {
     inspectNewtask,
+    checkFile,
 }

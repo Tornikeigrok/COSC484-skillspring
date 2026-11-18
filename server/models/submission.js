@@ -1,5 +1,6 @@
 'use strict';
 const { Model } = require('sequelize');
+const { SUBMISSION_ZIP_STATUS } = require('../constants/submissionConstants');
 
 module.exports = (sequelize, DataTypes) => {
   class Submission extends Model {
@@ -28,6 +29,11 @@ module.exports = (sequelize, DataTypes) => {
     notes: {
       type: DataTypes.TEXT,
       allowNull: true,
+    },
+    zip_status: {
+      type: DataTypes.ENUM(...Object.values(SUBMISSION_ZIP_STATUS)),
+      allowNull: false,
+      defaultValue: SUBMISSION_ZIP_STATUS.PENDING,
     },
   }, {
     sequelize,

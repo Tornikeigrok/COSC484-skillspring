@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const { queueVerificationEmail } = require('../queues/emailQueue');
 const { queueNdaEmail } = require('../queues/ndaQueue');
 const { VERIFICATION_STATUS, verificationCodeFormat } = require('../constants/authConstants');
-const { checkTitle, checkDesc, checkEstHrs, checkTaskType, checkFile, checkDifficulty, parseTaskId } =require('../utils/taskUtils');
+const { checkTitle, checkDesc, checkEstHrs, checkDeadline, checkTaskType, checkFile, checkDifficulty, parseTaskId } =require('../utils/taskUtils');
 const { TASK_STATUS, ASSET_TYPE, TASK_UPLOAD_DIR, AUTOMATION_FAILED, MAX_FILE_SIZE } = require('../constants/taskConstants');
 const { PROPOSAL_STATUS } = require('../constants/proposalConstants');
 const path = require('path');
@@ -233,7 +233,7 @@ module.exports = {
 
         const tasks = await Task.findAll({
             where: { company_id: company.id },
-            attributes: ['id', 'title', 'description', 'difficulty', 'estimated_hours', 'status', 'task_type', 'created_at', 'rejected_reason'],
+            attributes: ['id', 'title', 'description', 'difficulty', 'estimated_hours', 'deadline', 'status', 'task_type', 'created_at', 'rejected_reason'],
             order: [['created_at', 'DESC'], ['id', 'DESC']],
         });
 
@@ -304,7 +304,7 @@ module.exports = {
         const pending = JSON.parse(raw);
         return await sendEmailVerif(userId, pending.email, pending.website, pending.description);
     },
-    postTask: async (userId, taskTitle, taskDesc, taskType, difficulty, estimated_hours, file) => {
+    postTask: async (userId, taskTitle, taskDesc, taskType, difficulty, estimated_hours, deadline, file) => {
         checkFile(file);
         checkTaskType(taskType);
         checkDifficulty(difficulty);
@@ -312,6 +312,7 @@ module.exports = {
         const title = checkTitle(taskTitle);
         const desc = checkDesc(taskDesc);
         const hrs = checkEstHrs(estimated_hours);
+        const due = checkDeadline(deadline);
 
         const company = await Company.findOne({
             attributes: ['id'],
@@ -338,6 +339,7 @@ module.exports = {
                     description: desc,
                     difficulty,
                     estimated_hours: hrs,
+                    deadline: due,
                     status: TASK_STATUS.IN_REVIEW,
                     task_type: taskType,
                  }, { transaction: t });
@@ -371,7 +373,7 @@ module.exports = {
     },
 
     // Replaces the zip (and details) of a rejected task and sends it back to automated review
-    reviseTask: async (userId, rawTaskId, taskTitle, taskDesc, taskType, difficulty, estimated_hours, file) => {
+    reviseTask: async (userId, rawTaskId, taskTitle, taskDesc, taskType, difficulty, estimated_hours, deadline, file) => {
         const taskId = parseTaskId(rawTaskId);
         checkFile(file);
         checkTaskType(taskType);
@@ -380,6 +382,7 @@ module.exports = {
         const title = checkTitle(taskTitle);
         const desc = checkDesc(taskDesc);
         const hrs = checkEstHrs(estimated_hours);
+        const due = checkDeadline(deadline);
 
         const company = await Company.findOne({
             attributes: ['id'],
@@ -408,6 +411,7 @@ module.exports = {
                     description: desc,
                     difficulty,
                     estimated_hours: hrs,
+                    deadline: due,
                     task_type: taskType,
                     status: TASK_STATUS.IN_REVIEW,
                     rejected_reason: null,

@@ -3,8 +3,9 @@ const { ForbiddenError, NotFoundError, BadRequestError } = require('../utils/htt
 const { ROLE } = require('../constants/authConstants');
 const { TASK_STATUS } = require('../constants/taskConstants');
 const { checkTaskType, checkDifficulty, parseTaskId } = require('../utils/taskUtils');
+const { checkFile } = require('../utils/taskUtils');
 
-const TASK_ATTRIBUTES = ['id', 'title', 'description', 'difficulty', 'estimated_hours', 'status', 'task_type', 'created_at'];
+const TASK_ATTRIBUTES = ['id', 'title', 'description', 'difficulty', 'estimated_hours', 'deadline', 'status', 'task_type', 'created_at'];
 
 const COMPANY_INCLUDE = {
     model: Company,
@@ -98,5 +99,11 @@ module.exports = {
         }
 
         return { data: visibleTask };
+    },
+
+    submitTask: async (userId, taskId, file) => {
+        checkFile(file);
+
+        // todo
     },
 };

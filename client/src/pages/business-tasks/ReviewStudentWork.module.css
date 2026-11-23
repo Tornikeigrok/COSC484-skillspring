@@ -1,0 +1,334 @@
+.student {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.group {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* scorecard: contribution-graph style level meter */
+
+.criterion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.criterionText,
+.checkText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.criterionText strong,
+.checkText strong {
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.meter {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.levelName {
+  min-width: 76px;
+  color: var(--color-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  text-align: right;
+}
+
+.levelName > span:not(.unrated) {
+  display: none;
+  color: var(--color-ink);
+}
+
+.criterion:has(input:checked) .unrated {
+  display: none;
+}
+
+.criterion:has(input[value='1']:checked) .name1,
+.criterion:has(input[value='2']:checked) .name2,
+.criterion:has(input[value='3']:checked) .name3,
+.criterion:has(input[value='4']:checked) .name4 {
+  display: inline;
+}
+
+.cells {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.cellInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* label padding is the hit area, so hovering between squares never drops the preview */
+.cell {
+  padding: 2px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.square {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgb(27 31 35 / 6%);
+  border-radius: 4px;
+  background-color: #ebedf0;
+  transition: background-color 120ms ease;
+}
+
+.cellInput:checked ~ .cell .square {
+  background-color: var(--level);
+}
+
+.cells:hover .cell .square {
+  background-color: #ebedf0;
+}
+
+.cells .cell:hover .square,
+.cells .cell:hover ~ .cell .square {
+  background-color: var(--level);
+}
+
+.cellInput:focus-visible + .cell {
+  outline: 2px solid var(--color-brand);
+}
+
+/* verified task list */
+
+.tasks {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  list-style: none;
+}
+
+.tasks li + li {
+  border-top: 1px solid var(--color-line);
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  color: var(--color-ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.task:hover {
+  background-color: var(--color-canvas);
+}
+
+.task input {
+  margin: 0;
+  accent-color: #1a7f37;
+}
+
+.task:has(input:checked) {
+  color: var(--color-muted);
+}
+
+/* verdict */
+
+.verdicts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.verdict {
+  --tone: var(--color-brand);
+  --tone-soft: var(--color-brand-soft);
+
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.approve {
+  --tone: #1a7f37;
+  --tone-soft: #dafbe1;
+}
+
+.changes {
+  --tone: #bc4c00;
+  --tone-soft: #fff1e5;
+}
+
+.verdict:hover {
+  background-color: var(--color-canvas);
+}
+
+.verdict:has(input:checked) {
+  border-color: var(--tone);
+  background-color: var(--tone-soft);
+}
+
+.verdict input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.verdict:has(input:focus-visible) {
+  outline: 2px solid var(--color-brand);
+}
+
+.verdictIcon {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: var(--tone);
+}
+
+.verdict span {
+  display: grid;
+  gap: 2px;
+}
+
+.verdict strong {
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.verdict small {
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* sidebar */
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.panelHead h2 {
+  margin: 0;
+}
+
+.checks,
+.guide {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checks li,
+.guide li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkDot {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background-color: #1a7f37;
+  color: #fff;
+}
+
+.checkDot svg {
+  width: 11px;
+  height: 11px;
+  stroke-width: 3;
+}
+
+.checksNote {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-line);
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.guideCells {
+  display: flex;
+  flex-shrink: 0;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.guideCells .square {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+}
+
+@media (max-width: 560px) {
+  .criterion {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .levelName {
+    text-align: left;
+  }
+
+  .verdicts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

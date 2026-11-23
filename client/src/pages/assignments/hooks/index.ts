@@ -108,6 +108,17 @@ export interface TaskSubmission {
         id: number;
         User: { first_name: string; last_name: string; email: string };
     } | null;
+    // Scores come back as strings ("1".."4"), the column is TEXT
+    Review: {
+        id: number;
+        status: 'accept' | 'reject' | 'request_changes';
+        feedback: string;
+        functionality: string;
+        quality: string;
+        documentation: string;
+        communication: string;
+        reviewed_at: string;
+    } | null;
 }
 
 // Shared so the list page and the task page reuse one cache entry per task

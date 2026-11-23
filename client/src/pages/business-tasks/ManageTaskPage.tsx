@@ -31,6 +31,9 @@ import { Icon } from './components/Icon';
 import styles from './ManageTaskPage.module.css';
 import { useFetchAllTasks, useTaskDetails, useGetTaskProposals, useSendNda } from './hooks';
 import { useDownloadSubmission, useSubmissionsForTask } from '../assignments/hooks';
+import type { TaskSubmission } from '../assignments/hooks';
+import { LEVELS, REVIEW_SCORES, VERDICT_DISPLAY } from './constants/review';
+import review from './ReviewStudentWork.module.css';
 
 export default function ManageTaskPage() {
   const { id } = useParams();
@@ -55,10 +58,23 @@ export default function ManageTaskPage() {
   const { mutate: sendNda, isPending: sendingNda } = useSendNda();
 
   // Only an assigned student who signed the NDA can submit, so skip the request before that
-  const submissionsQuery = useSubmissionsForTask(Number(id), tab === 'submission' || !!assigned?.nda_signed);
+  const submissionsQuery = useSubmissionsForTask(
+    Number(id),
+    tab === 'submission' || tab === 'review' || !!assigned?.nda_signed,
+  );
   const submissions = submissionsQuery.data ?? [];
   const latest = submissions[0];
+  // Newest first, same order as submissions
+  const reviewed = submissions.filter((s) => s.Review);
+  const latestReview = reviewed[0]?.Review;
   const download = useDownloadSubmission();
+
+  const reviewActivity = (r: NonNullable<TaskSubmission['Review']>) => (
+    <li>
+      <strong>{VERDICT_DISPLAY[r.status].activity}</strong>
+      <small>You reviewed the work · {formatDateTime(r.reviewed_at)}</small>
+    </li>
+  );
 
   const publicUrl = `/tasks/${id}`;
 
@@ -383,12 +399,18 @@ export default function ManageTaskPage() {
                             <Link className={styles.ghostLink} to={`/profiles/${sub.Student.id}`}>
                               View profile
                             </Link>
-                            <Link
-                              to={`/business/tasks/review/${task.id}?submission=${sub.id}`}
-                              className={cx(styles.ghostLink, styles.rateLink)}
-                            >
-                              Review &amp; rate
-                            </Link>
+                            {sub.Review ? (
+                              <Badge tone={VERDICT_DISPLAY[sub.Review.status].tone}>
+                                {VERDICT_DISPLAY[sub.Review.status].label}
+                              </Badge>
+                            ) : (
+                              <Link
+                                to={`/business/tasks/review/${task.id}?submission=${sub.id}`}
+                                className={cx(styles.ghostLink, styles.rateLink)}
+                              >
+                                Review &amp; rate
+                              </Link>
+                            )}
                           </footer>
                         )}
                       </article>
@@ -400,11 +422,74 @@ export default function ManageTaskPage() {
                   <p>The selected student's work will appear here once they submit it.</p>
                 </Empty>
               ))}
-            {tab === 'review' && (
-              <Empty icon={PATHS.check} title="Nothing to review yet">
-                <p>Review and approve the work after a submission comes in.</p>
-              </Empty>
-            )}
+            {tab === 'review' &&
+              (submissionsQuery.isPending ? (
+                <p className={text.mutedSmall} role="status">
+                  Loading review…
+                </p>
+              ) : submissionsQuery.isError ? (
+                <ErrorMessage
+                  error={submissionsQuery.error}
+                  retry={() => submissionsQuery.refetch()}
+                />
+              ) : reviewed.length ? (
+                <div className={styles.submissions}>
+                  {reviewed.map((sub) => {
+                    const r = sub.Review!;
+                    const verdict = VERDICT_DISPLAY[r.status];
+                    return (
+                      <article key={r.id} className={styles.submission}>
+                        <header className={styles.detailHead}>
+                          <div className={styles.detailWho}>
+                            <h3>Your review</h3>
+                            <p>
+                              Submission #{sub.id} · Reviewed {formatDateTime(r.reviewed_at)}
+                            </p>
+                          </div>
+                          <Badge tone={verdict.tone}>{verdict.label}</Badge>
+                        </header>
+
+                        <section className={styles.detailSection}>
+                          <h4>Scorecard</h4>
+                          <ul className={review.guide}>
+                            {REVIEW_SCORES.map(([key, label]) => {
+                              const score = Number(r[key]);
+                              return (
+                                <li key={key}>
+                                  <span className={review.guideCells} aria-hidden="true">
+                                    {LEVELS.map((l) => (
+                                      <span
+                                        key={l.value}
+                                        className={review.square}
+                                        style={l.value <= score ? { backgroundColor: l.color } : undefined}
+                                      />
+                                    ))}
+                                  </span>
+                                  <span className={review.checkText}>
+                                    <strong>{label}</strong>
+                                    <small>
+                                      {LEVELS.find((l) => l.value === score)?.name ?? '—'} · {score}/4
+                                    </small>
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </section>
+
+                        <section className={styles.detailSection}>
+                          <h4>Feedback to the student</h4>
+                          <p className={styles.approach}>{r.feedback}</p>
+                        </section>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <Empty icon={PATHS.check} title="Nothing reviewed yet">
+                  <p>Review and rate the work from the Submission tab once it comes in.</p>
+                </Empty>
+              ))}
           </div>
         </div>
 
@@ -430,12 +515,15 @@ export default function ManageTaskPage() {
           <Card>
             <h2 className={styles.cardTitle}>Activity</h2>
             <ol className={styles.timeline}>
+              {/* newest first: a review of the latest submission sits above it, an older one below */}
+              {latest?.Review && reviewActivity(latest.Review)}
               {latest && (
                 <li>
                   <strong>Work submitted</strong>
                   <small>{formatDateTime(latest.submitted_at)}</small>
                 </li>
               )}
+              {!latest?.Review && latestReview && reviewActivity(latestReview)}
               {asset && (
                 <li>
                   <strong>Starter files uploaded</strong>

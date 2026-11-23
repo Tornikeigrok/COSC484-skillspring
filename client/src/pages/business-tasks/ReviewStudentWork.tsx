@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Badge, Button, Field, FieldError, Textarea } from '../../components/ui';
 import { Icon } from './components/Icon';
 import { PATHS } from './constants/manage-task';
+import { LEVELS } from './constants/review';
 import { cx } from '../../utils/cx';
 import layout from '../assignments/SubmitWorkPage.module.css';
 import manage from './ManageTaskPage.module.css';
@@ -17,13 +18,6 @@ import { toast } from 'sonner';
 
 
 
-// Contribution-graph shades, lightest to strongest
-const LEVELS = [
-  { value: 1, name: 'Needs work', color: '#9be9a8', hint: 'Broken or missing key requirements.' },
-  { value: 2, name: 'Acceptable', color: '#40c463', hint: 'Works, with clear gaps to fix.' },
-  { value: 3, name: 'Solid', color: '#30a14e', hint: 'Meets the brief with minor nits.' },
-  { value: 4, name: 'Exceptional', color: '#216e39', hint: 'Production ready, beyond the brief.' },
-];
 
 const CRITERIA = [
   ['functionality', 'Functionality', 'Runs as described and meets the requirements.'],

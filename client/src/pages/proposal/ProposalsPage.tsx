@@ -5,6 +5,7 @@ import { TASK_TYPE_LABELS } from '../../constants/tasks';
 import { cx } from '../../utils/cx';
 import { ICON, ICONS } from './constants/proposal-form';
 import { useMyProposals, type MyProposal } from './hooks';
+import { latestSubmission } from '../assignments/hooks';
 import styles from './ProposalsPage.module.css';
 
 type Status = MyProposal['status'];
@@ -158,6 +159,7 @@ function ProposalList({ items }: { items: MyProposal[] }) {
 function ProposalRow({ proposal: p }: { proposal: MyProposal }) {
   const { Task: task } = p;
   const submitted = shortDate(p.created_at);
+  const workSubmitted = latestSubmission(p);
 
   // backend only tracks pending/accepted/rejected, so pending = in review
   const steps: { label: string; state: StepState; note?: string }[] =
@@ -209,7 +211,17 @@ function ProposalRow({ proposal: p }: { proposal: MyProposal }) {
         ))}
       </ol>
 
-      {p.status === 'accepted' && p.nda_signed ? (
+      {workSubmitted ? (
+        <div className={styles.locked}>
+          <Link to={`/assignment/${task.id}`} className={styles.ctaDone}>
+            <Svg d={ICONS.check} size={14} />
+            Work submitted
+          </Link>
+          <p className={styles.lockedNote}>
+            Sent {shortDate(workSubmitted.submitted_at)}, awaiting company review.
+          </p>
+        </div>
+      ) : p.status === 'accepted' && p.nda_signed ? (
         <Link to={`/assignment/${task?.id}`} className={styles.cta}>
           Start assignment
           <Svg d={ICONS.arrow} size={14} />

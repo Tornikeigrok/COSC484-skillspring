@@ -376,6 +376,27 @@
   cursor: not-allowed;
 }
 
+.ctaDone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid #cde7d5;
+  border-radius: var(--radius-sm);
+  background-color: #eaf6ef;
+  color: #216447;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: border-color 0.15s ease;
+}
+
+.ctaDone:hover {
+  border-color: #216447;
+}
+
 .lockedNote {
   /* width 0 + min-width 100% makes the note wrap at the button's width */
   width: 0;

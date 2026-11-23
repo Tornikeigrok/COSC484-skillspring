@@ -43,7 +43,8 @@ if (require.main === module) {
 }
 
 app.use((err, req, res, next) => {
-    const status = err.status || 500;
+    // Multer errors (file too large etc.) are client mistakes
+    const status = err.status || (err.name === 'MulterError' ? 400 : 500);
     if (status === 500) console.error(err);
     res.status(status).json({ message: status === 500 ? 'Internal server error' : err.message });
 });

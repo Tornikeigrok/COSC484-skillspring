@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button, Field, Textarea } from '../../components/ui';
 import { Icon } from '../business-tasks/components/Icon';
@@ -8,6 +8,12 @@ import { FORM_ICONS } from '../business-tasks/constants/create-task';
 import { formatSize } from '../business-tasks/utils/format-size';
 import { cx } from '../../utils/cx';
 import styles from './SubmitWorkPage.module.css';
+import { latestSubmission, useDisplayMyWork, useSubmitTask } from './hooks';
+import { submissionSchema, SubmissionFormData } from './utils/assignments-validations';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import SubmissionPage from './SubmissionPage';
+
 
 const MAX_SIZE = 50 * 1024 * 1024;
 
@@ -21,7 +27,7 @@ const CHECKLIST = [
 const NEXT_STEPS = [
   ['Automatic checks', 'We scan the archive for size, structure, and leaked credentials.'],
   ['Company review', 'The company reviews your work and runs it on their side.'],
-  ['Feedback', 'You get approved or asked for changes, and can upload a new version.'],
+  ['Feedback', 'The company approves your work or shares feedback with you.'],
 ];
 
 function zipError(file: File) {
@@ -30,9 +36,9 @@ function zipError(file: File) {
   return '';
 }
 
-// ponytail: UI only, submit isn't wired to the server yet
 export default function SubmitWorkPage() {
   const { taskId } = useParams();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState('');
@@ -40,6 +46,7 @@ export default function SubmitWorkPage() {
 
   function pickFile(picked: File | null) {
     setFile(picked);
+    setValue('file', picked as File, { shouldValidate: true });
     setFileError(picked ? zipError(picked) : '');
   }
 
@@ -48,15 +55,30 @@ export default function SubmitWorkPage() {
     if (fileRef.current) fileRef.current.value = '';
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!file) return setFileError('Upload your work as a .zip file');
-    if (fileError) return;
-    toast.info('Submitting isn’t connected yet');
+  const { mutate: submitTask } = useSubmitTask(taskId);
+
+  const { register, handleSubmit, setValue, formState: { errors }} = useForm({
+    resolver: zodResolver(submissionSchema),
+  });
+
+  const [openSubmission, setOpenSubmision] = useState(false);
+  const submit = (data: SubmissionFormData) => {
+    submitTask({ file: data.file, notes: data.notes},
+      { onSuccess: () => {
+        setOpenSubmision(true);
+      }});
   }
+
+  // One submission per task: already submitted goes back to the task page.
+  // Skipped while the success popup is open, closing it then lands on the task page.
+  const { data: myWork } = useDisplayMyWork();
+  const submitted = latestSubmission(myWork?.find((w) => w.Task.id === Number(taskId)));
+  if (submitted && !openSubmission) return <Navigate to={`/assignment/${taskId}`} replace />;
 
   return (
     <div className={styles.page}>
+      <SubmissionPage open={openSubmission} onOpenChange={setOpenSubmision}/>
+      
       <Link className={styles.back} to={`/assignment/${taskId}`}>
         <Icon d="M19 12H5M11 6l-6 6 6 6" className={styles.icon} />
         Back to task
@@ -65,16 +87,16 @@ export default function SubmitWorkPage() {
       <header className={styles.header}>
         <h1 className={styles.title}>Submit your work</h1>
         <p className={styles.subtitle}>
-          Upload your finished solution. You can submit a new version if changes are requested.
+          Upload your finished solution. You can only submit once, so double-check it first.
         </p>
       </header>
 
       <div className={styles.grid}>
-        <form className={styles.card} onSubmit={submit} noValidate>
+        <form className={styles.card} onSubmit={handleSubmit(submit)} noValidate>
           <Field label="Solution" id="solution" error={fileError}>
             <div className={cx(styles.dropzone, file && !fileError && styles.filled)}>
               {/* invisible input covers the box, so click and native drag-and-drop both work */}
-              <input
+              <input 
                 ref={fileRef}
                 id="solution"
                 type="file"
@@ -107,6 +129,7 @@ export default function SubmitWorkPage() {
 
           <Field label="Notes for the reviewer" id="notes">
             <Textarea
+              {...register('notes')}
               id="notes"
               name="notes"
               rows={5}

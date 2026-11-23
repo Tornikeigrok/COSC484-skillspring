@@ -1,9 +1,15 @@
-const { Task, Company, TaskAsset } = require('../models');
+const { sequelize, Task, Company, Student, Submission } = require('../models');
 const { ForbiddenError, NotFoundError, BadRequestError } = require('../utils/httpExceptions');
 const { ROLE } = require('../constants/authConstants');
-const { TASK_STATUS } = require('../constants/taskConstants');
-const { checkTaskType, checkDifficulty, parseTaskId } = require('../utils/taskUtils');
-const { checkFile } = require('../utils/taskUtils');
+const { TASK_STATUS, TASK_UPLOAD_DIR, UNSCANNED_CODE } = require('../constants/taskConstants');
+const { SUBMISSION_ZIP_STATUS } = require('../constants/submissionConstants');
+const { checkTaskType, checkDifficulty, parseTaskId, checkFileExists, checkNotes, saveZip } = require('../utils/taskUtils');
+const { checkFile } = require('../workers/taskWorker');
+const { reviewTask } = require('./taskReviewService');
+const { assertNdaAccess } = require('./proposalService');
+const { UnrecoverableError } = require('bullmq');
+const path = require('path');
+const fs = require('fs/promises');
 
 const TASK_ATTRIBUTES = ['id', 'title', 'description', 'difficulty', 'estimated_hours', 'deadline', 'status', 'task_type', 'created_at'];
 
@@ -101,9 +107,90 @@ module.exports = {
         return { data: visibleTask };
     },
 
-    submitTask: async (userId, taskId, file) => {
-        checkFile(file);
+    // Same checks as a company upload, but run inline so the student gets the verdict right away
+    submitTask: async (userId, rawTaskId, file, notes) => {
+        const taskId = parseTaskId(rawTaskId);
+        checkFileExists(file);
+        const cleanNotes = checkNotes(notes);
 
-        // todo
+        // Only the student with an accepted proposal and signed NDA can submit
+        const proposal = await assertNdaAccess(userId, taskId, [
+            { model: Student, attributes: ['id', 'github_url'] },
+            { model: Task, attributes: ['id', 'status'] },
+        ]);
+
+        // Once a submission passes, the task waits on the company
+        if (proposal.Task.status !== TASK_STATUS.IN_PROGRESS) {
+            throw new BadRequestError('Task is not accepting submissions');
+        }
+
+        const storedFilename = await saveZip(file);
+
+        let scan;
+        try {
+            scan = checkFile(storedFilename);
+        } catch (err) {
+            await fs.rm(path.join(TASK_UPLOAD_DIR, storedFilename), { force: true });
+            // Size and count limits are the student's fault, anything else is ours
+            if (err instanceof UnrecoverableError) throw new BadRequestError(err.message);
+            throw err;
+        }
+        const { hardFlags, softFlags, textFiles, hasUnscanned } = scan;
+
+        let zipStatus;
+        let reasons;
+        if (hardFlags.length > 0) {
+            zipStatus = SUBMISSION_ZIP_STATUS.REJECTED;
+            reasons = hardFlags;
+        } else {
+            const review = await reviewTask(softFlags, textFiles, ROLE.STUDENT)
+                .catch(() => ({ verdict: 'escalate', reasons: ['Automated review could not complete'] }));
+
+            switch (review.verdict) {
+                case 'approve':
+                    zipStatus = hasUnscanned ? SUBMISSION_ZIP_STATUS.PENDING : SUBMISSION_ZIP_STATUS.ACCEPTED;
+                    reasons = hasUnscanned ? UNSCANNED_CODE : [];
+                    break;
+                case 'reject':
+                    zipStatus = SUBMISSION_ZIP_STATUS.REJECTED;
+                    reasons = review.reasons;
+                    break;
+                case 'escalate':
+                    zipStatus = SUBMISSION_ZIP_STATUS.PENDING;
+                    reasons = review.reasons;
+                    break;
+            }
+        }
+
+        let submission;
+        try {
+            submission = await sequelize.transaction(async (t) => {
+                // Only a clean zip moves the task forward, rejected or pending lets the student resubmit.
+                // Conditional update so two concurrent accepted submissions can't both win.
+                if (zipStatus === SUBMISSION_ZIP_STATUS.ACCEPTED) {
+                    const [moved] = await Task.update(
+                        { status: TASK_STATUS.SUBMITTED },
+                        { where: { id: proposal.Task.id, status: TASK_STATUS.IN_PROGRESS }, transaction: t },
+                    );
+                    if (moved === 0) {
+                        throw new BadRequestError('Task is not accepting submissions');
+                    }
+                }
+
+                return await Submission.create({
+                    proposal_id: proposal.id,
+                    student_id: proposal.Student.id,
+                    submission_zip_path: storedFilename,
+                    github_url: proposal.Student.github_url,
+                    notes: cleanNotes,
+                    zip_status: zipStatus,
+                }, { transaction: t });
+            });
+        } catch (err) {
+            await fs.rm(path.join(TASK_UPLOAD_DIR, storedFilename), { force: true });
+            throw err;
+        }
+
+        return { data: { id: submission.id, zip_status: zipStatus, reasons } };
     },
 };

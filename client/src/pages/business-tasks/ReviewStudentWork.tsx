@@ -1,13 +1,21 @@
 import { Fragment } from 'react';
 import type { CSSProperties } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { Badge, Button, Field, Textarea } from '../../components/ui';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Badge, Button, Field, FieldError, Textarea } from '../../components/ui';
 import { Icon } from './components/Icon';
 import { PATHS } from './constants/manage-task';
 import { cx } from '../../utils/cx';
 import layout from '../assignments/SubmitWorkPage.module.css';
 import manage from './ManageTaskPage.module.css';
 import styles from './ReviewStudentWork.module.css';
+import { useSubmitReview } from './hooks';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitReviewSchema, submitReview } from './utils/business-tasks-validations';
+import { toast } from 'sonner';
+
+
+
 
 // Contribution-graph shades, lightest to strongest
 const LEVELS = [
@@ -19,10 +27,10 @@ const LEVELS = [
 
 const CRITERIA = [
   ['functionality', 'Functionality', 'Runs as described and meets the requirements.'],
-  ['quality', 'Code quality', 'Readable, organized, sensible conventions.'],
+  ['code_quality', 'Code quality', 'Readable, organized, sensible conventions.'],
   ['documentation', 'Documentation', 'README and notes make setup easy.'],
   ['communication', 'Communication', 'Responsive and clear throughout.'],
-];
+] as const;
 
 const VERIFIED = [
   'Followed the README setup steps',
@@ -33,18 +41,25 @@ const VERIFIED = [
 
 const VERDICTS = [
   {
-    value: 'approve',
+    value: 'accept',
     label: 'Approve',
     hint: 'Accept the work and mark the task complete.',
     icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 12l3 3 5-6',
     tone: styles.approve,
   },
   {
-    value: 'changes',
+    value: 'request_changes',
     label: 'Request changes',
     hint: 'Send feedback that must be addressed first.',
     icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v5M12 16.5v.01',
     tone: styles.changes,
+  },
+  {
+    value: 'reject',
+    label: 'Reject',
+    hint: 'Decline the work. The task is not completed.',
+    icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9 9l6 6M15 9l-6 6',
+    tone: styles.reject,
   },
 ];
 
@@ -62,6 +77,31 @@ export default function ReviewStudentWork() {
   const { taskId } = useParams();
   const back = `/business/tasks/${taskId}/proposals`;
 
+  const url = new URLSearchParams(window.location.search);
+
+  const navigate = useNavigate();
+  const { mutate: submitFeedback, isPending } = useSubmitReview(url.get('submission') ?? undefined);
+  // zod every input before submitting
+  const { register, handleSubmit, formState: { errors }} = useForm({
+    resolver: zodResolver(submitReview),
+  });
+
+  const submit = (data: SubmitReviewSchema) => {
+    submitFeedback({
+      submissionId: url.get('submission'),
+      verdict: data.verdict,
+      feedback: data.feedback,
+      functionality: data.functionality,
+      quality: data.code_quality,
+      documentation: data.documentation,
+      communication: data.communication
+    }, { onSuccess: () => {
+      toast.success('Thanks, your review was sent to the student');
+      navigate(back, { replace: true });
+    }});
+  }
+
+ 
   return (
     <div className={layout.page}>
       <Link className={layout.back} to={back}>
@@ -77,7 +117,7 @@ export default function ReviewStudentWork() {
       </header>
 
       <div className={layout.grid}>
-        <form className={layout.card} onSubmit={(e) => e.preventDefault()}>
+        <form className={layout.card} onSubmit={handleSubmit(submit)}>
           <div className={styles.student}>
             <span className={cx(manage.avatar, manage.avatarLg)} aria-hidden="true">
               ST
@@ -103,6 +143,7 @@ export default function ReviewStudentWork() {
                 <div className={styles.criterionText}>
                   <strong>{label}</strong>
                   <span>{hint}</span>
+                  <FieldError id={`${key}-error`} message={errors[key]?.message} />
                 </div>
                 <div className={styles.meter}>
                   <span className={styles.levelName} aria-hidden="true">
@@ -114,13 +155,19 @@ export default function ReviewStudentWork() {
                     ))}
                   </span>
                   {/* DOM runs 4→1 and displays reversed, so `:checked ~ .cell` fills every lower level */}
-                  <div className={styles.cells} role="radiogroup" aria-label={label}>
+                  <div
+                    className={styles.cells}
+                    role="radiogroup"
+                    aria-label={label}
+                    aria-invalid={!!errors[key]}
+                    aria-describedby={errors[key] ? `${key}-error` : undefined}
+                  >
                     {[...LEVELS].reverse().map((l) => (
                       <Fragment key={l.value}>
                         <input
+                          {...register(key)}
                           type="radio"
                           id={`${key}-${l.value}`}
-                          name={key}
                           value={l.value}
                           className={styles.cellInput}
                         />
@@ -155,10 +202,12 @@ export default function ReviewStudentWork() {
             </ul>
           </fieldset>
 
-          <Field label="Feedback for the student" id="feedback">
+          <Field label="Feedback for the student" id="feedback" error={errors.feedback?.message}>
             <Textarea
+              {...register('feedback')}
               id="feedback"
-              name="feedback"
+              aria-invalid={!!errors.feedback}
+              aria-describedby={errors.feedback ? 'feedback-error' : undefined}
               rows={5}
               className={layout.notes}
               placeholder="What worked well, what should change, and why. Reference files or lines where you can."
@@ -170,7 +219,7 @@ export default function ReviewStudentWork() {
             <div className={styles.verdicts}>
               {VERDICTS.map((v) => (
                 <label key={v.value} className={cx(styles.verdict, v.tone)}>
-                  <input type="radio" name="decision" value={v.value} />
+                  <input {...register('verdict')} type="radio" value={v.value} />
                   <Icon d={v.icon} className={styles.verdictIcon} />
                   <span>
                     <strong>{v.label}</strong>
@@ -179,14 +228,15 @@ export default function ReviewStudentWork() {
                 </label>
               ))}
             </div>
+            <FieldError id="verdict-error" message={errors.verdict?.message} />
           </fieldset>
 
           <div className={layout.footer}>
             <Link className={layout.cancel} to={back}>
               Cancel
             </Link>
-            <Button type="submit" variant="dark" className={layout.submit}>
-              Submit review
+            <Button type="submit" variant="dark" className={layout.submit} disabled={isPending}>
+              {isPending ? 'Submitting…' : 'Submit review'}
             </Button>
           </div>
         </form>

@@ -175,8 +175,9 @@
 
 .verdicts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+  margin-bottom: 8px;
 }
 
 .verdict {
@@ -203,6 +204,16 @@
 .changes {
   --tone: #bc4c00;
   --tone-soft: #fff1e5;
+}
+
+.reject {
+  --tone: #cf222e;
+  --tone-soft: #ffebe9;
+}
+
+/* unrated row after submit: outline empty squares red */
+.cells[aria-invalid='true'] .square {
+  border-color: oklch(57.7% 0.245 27.325);
 }
 
 .verdict:hover {

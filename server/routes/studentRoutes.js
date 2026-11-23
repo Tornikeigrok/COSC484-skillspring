@@ -64,5 +64,10 @@ router.post('/resend-verification', verificationLimiter, createHandler(
     studentController.resendVerification,
 ));
 
+router.get('/reviewed-tasks', createHandler(
+    (req) => ({ userId: req.user.userId }),
+    studentController.reviewedTasks,
+));
+
 
 module.exports = router;

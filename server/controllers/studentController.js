@@ -22,4 +22,7 @@ module.exports = {
     resendVerification: async (input) => {
         return await studentService.resendVerification(input.userId);
     },
+    reviewedTasks: async (input) => {
+        return await studentService.acceptedTasks(input.userId);
+    },
 }

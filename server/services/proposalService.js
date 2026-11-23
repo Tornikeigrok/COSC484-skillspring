@@ -59,7 +59,7 @@ module.exports = {
                model: Task,
                attributes: ['id', 'title', 'task_type', 'difficulty', 'deadline'],
                include: { model: Company, attributes: ['name'] },
-           }, { model: Submission, attributes: ['submitted_at', 'zip_status']}],
+           }, { model: Submission, attributes: ['id', 'submitted_at', 'zip_status']}],
            order: [['created_at', 'DESC']],
        });
 

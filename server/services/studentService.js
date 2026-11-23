@@ -1,5 +1,6 @@
-const { User, Student, sequelize } = require('../models');
-const { BadRequestError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
+const { User, Student, Submission, Review, Proposal, Task, Company, sequelize } = require('../models');
+const { BadRequestError, ConflictError, UnauthorizedError, NotFoundError } = require('../utils/httpExceptions');
+const { REVIEW_VERDICT, REVIEW_CRITERIA } = require('../constants/reviewConstants');
 const u = require('../us_universities.json');
 const { validateEmail, validatePassword } = require('../utils/authUtils');
 const bcrypt = require('bcrypt');
@@ -185,5 +186,37 @@ module.exports = {
 
         const pending = JSON.parse(raw);
         return await sendEmailVerif(userId, pending.email, pending.university, pending.gradYear, pending.bio);
+    },
+    // Reviewed work for the profile page, only final verdicts (accept/reject)
+    acceptedTasks: async (userId) => {
+        const student = await Student.findOne({ where: { user_id: userId }, attributes: ['id'] });
+        if (!student) {
+            throw new NotFoundError('Student profile not found');
+        }
+
+        const submissions = await Submission.findAll({
+            where: { student_id: student.id },
+            attributes: ['id', 'submitted_at'],
+            include: [
+                {
+                    model: Review,
+                    required: true,
+                    where: { status: [REVIEW_VERDICT.ACCEPT, REVIEW_VERDICT.REJECT] },
+                    attributes: ['status', 'feedback', ...REVIEW_CRITERIA, 'reviewed_at'],
+                },
+                {
+                    model: Proposal,
+                    attributes: ['id'],
+                    include: {
+                        model: Task,
+                        attributes: ['id', 'title', 'task_type', 'difficulty'],
+                        include: { model: Company, attributes: ['name'] },
+                    },
+                },
+            ],
+            order: [[Review, 'reviewed_at', 'DESC']],
+        });
+
+        return { data: submissions };
     },
 }

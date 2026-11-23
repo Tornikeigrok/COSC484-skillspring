@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DIFFICULTIES, TASK_TYPES } from '../../../constants/tasks';
 import { unzipSync } from 'fflate';
+import { REVIEW_VERDICTS } from '../hooks';
 
 async function oversizedFile(zip: File, limit = 10 * 1024 * 1024) {
     const culprit: string[] = [];
@@ -53,3 +54,19 @@ export const uploadStarterSchema = z.object({
   file: z.file().min(1, 'choose a starter ZIP file'),
 });
 export type UploadStarterFormData = z.infer<typeof uploadStarterSchema>;
+
+
+export const submitReview = z.object({
+  functionality: z.coerce.number().int().min(1, 'please rate this area').max(4),
+  code_quality: z.coerce.number().int().min(1, 'please rate this area').max(4),
+  documentation: z.coerce.number().int().min(1, 'please rate this area').max(4),
+  communication: z.coerce.number().int().min(1, 'please rate this area').max(4),
+  feedback: z
+    .string()
+    .trim()
+    .min(10, 'feedback must be at least 10 characters')
+    .max(5000, 'feedback must be at most 5,000 characters'),
+  verdict: z.enum(REVIEW_VERDICTS, 'please choose a verdict'),
+});
+
+export type SubmitReviewSchema = z.infer<typeof submitReview>;

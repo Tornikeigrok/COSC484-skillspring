@@ -1,10 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
-import { ErrorMessage, Loading, buttonClass } from '../../components/ui';
+import { DateLabel, ErrorMessage, Loading, buttonClass } from '../../components/ui';
+import { cx } from '../../utils/cx';
 import { DIFFICULTY_LABELS, TASK_TYPE_LABELS } from '../../constants/tasks';
 import { formatEstimate, initials } from '../../utils/task-display';
 import { useAssignedTask } from '../nda/hooks/use-nda';
 import styles from './SelectedTask.module.css';
-import { useDownload } from './hooks';
+import { latestSubmission, useDisplayMyWork, useDownload } from './hooks';
 
 const ICON = {
   width: 18,
@@ -29,6 +30,9 @@ export default function SelectedTask() {
   const { data, isPending, error, refetch } = useAssignedTask(taskId);
 
   const { mutate: download, isPending: downloading } = useDownload(taskId);
+  // The assigned-task endpoint has no submission info, my-work does (usually cached from the list)
+  const { data: myWork } = useDisplayMyWork();
+  const submitted = latestSubmission(myWork?.find((w) => w.Task.id === taskId));
 
   if (isPending) return <Loading />;
   if (error) return <ErrorMessage error={error} retry={refetch} />;
@@ -62,7 +66,9 @@ export default function SelectedTask() {
             <p className={styles.company}>{company?.name ?? 'Company'}</p>
             <h1 className={styles.title}>{task.title}</h1>
           </div>
-          <span className={styles.status}>In progress</span>
+          <span className={cx(styles.status, submitted && styles.statusSubmitted)}>
+            {submitted ? 'Submitted' : 'In progress'}
+          </span>
         </div>
 
         <dl className={styles.facts}>
@@ -113,17 +119,33 @@ export default function SelectedTask() {
         </div>
 
         <aside className={styles.side}>
-          <section className={styles.card}>
-            <h2 className={styles.cardTitle}>Next steps</h2>
-            <ol className={styles.steps}>
-              {NEXT_STEPS.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-            <Link className={buttonClass('dark', styles.submit)} to={`/assignment/${taskId}/submit`}>
-              Submit work
-            </Link>
-          </section>
+          {submitted ? (
+            <section className={cx(styles.card, styles.submittedCard)}>
+              <span className={styles.submittedIcon}>
+                <svg {...ICON} width={20} height={20} strokeWidth={2.4}>
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+              </span>
+              <h2 className={styles.cardTitle}>Work submitted</h2>
+              <p className={styles.submittedText}>
+                You submitted this task on <DateLabel value={submitted.submitted_at} />.{' '}
+                {company?.name ?? 'The company'} is reviewing your work. You’ll be notified once
+                they respond.
+              </p>
+            </section>
+          ) : (
+            <section className={styles.card}>
+              <h2 className={styles.cardTitle}>Next steps</h2>
+              <ol className={styles.steps}>
+                {NEXT_STEPS.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              <Link className={buttonClass('dark', styles.submit)} to={`/assignment/${taskId}/submit`}>
+                Submit work
+              </Link>
+            </section>
+          )}
 
           <section className={styles.nda}>
             <svg {...ICON} width={20} height={20}>

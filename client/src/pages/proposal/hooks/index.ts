@@ -1,6 +1,7 @@
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api-request";
 import type { AvailableTask } from "@/pages/discover/hooks";
+import type { WorkSubmission } from "@/pages/assignments/hooks";
 
 export interface ProposalBody {
     taskId: string,
@@ -27,6 +28,7 @@ export interface MyProposal {
     created_at: string;
     nda_signed: boolean;
     Task: Pick<AvailableTask, 'id' | 'title' | 'task_type' | 'difficulty' | 'Company'>;
+    Submissions: WorkSubmission[];
 }
 
 export function useMyProposals() {

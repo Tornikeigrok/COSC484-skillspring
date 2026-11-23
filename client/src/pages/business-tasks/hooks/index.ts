@@ -141,3 +141,29 @@ export function useSendNda() {
     });
 }
 
+export const REVIEW_VERDICTS = ['accept', 'reject', 'request_changes'] as const;
+export type ReviewVerdict = (typeof REVIEW_VERDICTS)[number];
+
+
+interface ReviewProps {
+    submissionId: string | null;
+    verdict: ReviewVerdict;
+    feedback: string;
+    functionality: number;
+    quality: number
+    documentation: number;
+    communication: number
+}
+
+export function useSubmitReview(id: string | undefined) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (body: ReviewProps) => apiRequest(`/api/company/submissions/${id}/review`, 'POST', body),
+        onSuccess: () => {
+            // submission status, task status and proposal state can all change after a verdict
+            queryClient.invalidateQueries({ queryKey: ['task-submissions'] });
+            queryClient.invalidateQueries({ queryKey: ['company-tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['proposals'] });
+        },
+    })
+}

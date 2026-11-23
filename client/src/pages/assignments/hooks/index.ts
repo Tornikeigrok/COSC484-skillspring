@@ -123,5 +123,8 @@ export function useTaskSubmissions(taskIds: number[]) {
 
 // Accepted submissions for one of the company's tasks, newest first
 export function useSubmissionsForTask(taskId: number, enabled = true) {
-    return useQuery({ ...taskSubmissionsQuery(taskId), enabled: enabled && Number.isInteger(taskId) });
+    return useQuery({ 
+        ...taskSubmissionsQuery(taskId), 
+        enabled: enabled && Number.isInteger(taskId) 
+    });
 }

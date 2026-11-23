@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const companyController = require('../controllers/companyController');
+const companyService = require('../services/companyService');
 const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/userMiddleware');
 const requireVerified = require('../middleware/verifiedMiddleware');
@@ -141,5 +142,22 @@ router.post('/send-nda', createHandler(
     }),
     companyController.selectStudent,
 ))
+
+router.get('/tasks/:id/submissions', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        taskId: req.params.id,
+    }),
+    companyController.taskSubmissions,
+));
+
+router.get('/submissions/:id/download', async (req, res, next) => {
+    try {
+        const { filePath, downloadName } = await companyService.submissionZipPath(req.user.userId, req.params.id);
+        res.download(filePath, downloadName, (err) => { if (err && !res.headersSent) next(err); });
+    } catch (err) {
+        next(err);
+    }
+});
 
 module.exports = router;

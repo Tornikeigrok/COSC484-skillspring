@@ -1,4 +1,5 @@
-const { sequelize, User, Company, Task, TaskAsset, Student, Proposal } = require('../models');
+const { sequelize, User, Company, Task, TaskAsset, Student, Proposal, Submission } = require('../models');
+const { SUBMISSION_ZIP_STATUS } = require('../constants/submissionConstants');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
 const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
 const bcrypt = require('bcrypt');
@@ -9,7 +10,7 @@ const crypto = require('crypto');
 const { queueVerificationEmail } = require('../queues/emailQueue');
 const { queueNdaEmail } = require('../queues/ndaQueue');
 const { VERIFICATION_STATUS, verificationCodeFormat } = require('../constants/authConstants');
-const { checkTitle, checkDesc, checkEstHrs, checkDeadline, checkTaskType, checkFile, checkDifficulty, parseTaskId } =require('../utils/taskUtils');
+const { checkTitle, checkDesc, checkEstHrs, checkDeadline, checkTaskType, checkFileExists, checkDifficulty, parseTaskId, saveZip } =require('../utils/taskUtils');
 const { TASK_STATUS, ASSET_TYPE, TASK_UPLOAD_DIR, AUTOMATION_FAILED, MAX_FILE_SIZE } = require('../constants/taskConstants');
 const { PROPOSAL_STATUS } = require('../constants/proposalConstants');
 const path = require('path');
@@ -120,18 +121,6 @@ function checkZipContents(file) {
            throw new BadRequestError(`${entry.entryName} is over 10 MB`);
         }
     }
-}
-
-/**
- * Create random UUID for each zip so names don't collide
- * mkdir will create a folder in which all zips will go
- * each zip then has to be written into the created folder.
- */
-async function saveZip(file) {
-    const storedFilename = `${crypto.randomUUID()}.zip`;
-    await fs.mkdir(TASK_UPLOAD_DIR, { recursive: true });
-    await fs.writeFile(path.join(TASK_UPLOAD_DIR, storedFilename), file.buffer);
-    return storedFilename;
 }
 
 // Only the owner can revise, and only a task that automated review rejected
@@ -305,7 +294,7 @@ module.exports = {
         return await sendEmailVerif(userId, pending.email, pending.website, pending.description);
     },
     postTask: async (userId, taskTitle, taskDesc, taskType, difficulty, estimated_hours, deadline, file) => {
-        checkFile(file);
+        checkFileExists(file);
         checkTaskType(taskType);
         checkDifficulty(difficulty);
 
@@ -375,7 +364,7 @@ module.exports = {
     // Replaces the zip (and details) of a rejected task and sends it back to automated review
     reviseTask: async (userId, rawTaskId, taskTitle, taskDesc, taskType, difficulty, estimated_hours, deadline, file) => {
         const taskId = parseTaskId(rawTaskId);
-        checkFile(file);
+        checkFileExists(file);
         checkTaskType(taskType);
         checkDifficulty(difficulty);
 
@@ -495,6 +484,68 @@ module.exports = {
             },
         );
         return { data: userInfo };
+    },
+    // Submissions for one of the company's tasks. Only clean zips, rejected and pending ones never reach the company
+    taskSubmissions: async (userId, rawTaskId) => {
+        const taskId = parseTaskId(rawTaskId);
+
+        const company = await Company.findOne({ attributes: ['id'], where: { user_id: userId } });
+        if (!company) {
+            throw new NotFoundError('Company profile not found');
+        }
+
+        const task = await Task.findByPk(taskId, { attributes: ['company_id'] });
+        if (!task) {
+            throw new NotFoundError('Task not found');
+        }
+        if (task.company_id !== company.id) {
+            throw new ForbiddenError('You do not have access to this task');
+        }
+
+        const submissions = await Submission.findAll({
+            where: { zip_status: SUBMISSION_ZIP_STATUS.ACCEPTED },
+            attributes: ['id', 'github_url', 'notes', 'submitted_at'],
+            include: [
+                { model: Proposal, attributes: [], where: { task_id: taskId }, required: true },
+                {
+                    model: Student,
+                    attributes: ['id'],
+                    include: { model: User, attributes: ['first_name', 'last_name', 'email'] },
+                },
+            ],
+            order: [['submitted_at', 'DESC']],
+        });
+
+        return { data: submissions };
+    },
+    // Path on disk to a submission zip, the route streams it with res.download
+    submissionZipPath: async (userId, rawSubmissionId) => {
+        const submissionId = parseTaskId(rawSubmissionId, 'submission');
+
+        const company = await Company.findOne({ attributes: ['id'], where: { user_id: userId } });
+        if (!company) {
+            throw new NotFoundError('Company profile not found');
+        }
+
+        // Only clean zips on this company's own tasks, same rule as taskSubmissions
+        const submission = await Submission.findOne({
+            where: { id: submissionId, zip_status: SUBMISSION_ZIP_STATUS.ACCEPTED },
+            attributes: ['submission_zip_path'],
+            include: {
+                model: Proposal,
+                attributes: ['id'],
+                required: true,
+                include: { model: Task, attributes: [], where: { company_id: company.id }, required: true },
+            },
+        });
+        if (!submission) {
+            throw new NotFoundError('Submission not found');
+        }
+
+        return {
+            filePath: path.join(TASK_UPLOAD_DIR, submission.submission_zip_path),
+            downloadName: `submission-${submissionId}.zip`,
+        };
     },
     // When company selects student, we send out an email.
     // Include taskId and student email so we send email to that address

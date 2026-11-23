@@ -30,6 +30,7 @@ const NdaSigningPage = lazy(() => import('./pages/nda/NdaSigningPage'));
 const NdaDashboardPage = lazy(() => import('./pages/nda/NdaDashboardPage'));
 const SelectedTask = lazy(() => import('./pages/assignments/SelectedTask'));
 const SubmitWorkPage = lazy(() => import('./pages/assignments/SubmitWorkPage'));
+const ReviewStudentWork = lazy(() => import('./pages/business-tasks/ReviewStudentWork'))
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -121,6 +122,7 @@ export default function App() {
                 <Route path="/business/tasks/new" element={<CreateTaskPage />} />
                 <Route path="/business/tasks/:id/revise" element={<ReviseTaskPage />} />
                 <Route path="/business/tasks/:id/proposals" element={<ManageTaskPage />} />
+                <Route path="/business/tasks/review/:taskId" element={<ReviewStudentWork />} />
               </Route>
             </Route>
           </Route>

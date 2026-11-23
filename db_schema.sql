@@ -192,7 +192,11 @@ CREATE TABLE reviews (
     company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
     feedback TEXT NOT NULL,
     status review_status NOT NULL,
-    reviewed_at TIMESTAMPTZ DEFAULT NOW()
+    reviewed_at TIMESTAMPTZ DEFAULT NOW(),
+    functionality TEXT NOT NULL,
+    quality TEXT NOT NULL,
+    documentation TEXT NOT NULL,
+    communication TEXT NOT NULL,
 );
 
 

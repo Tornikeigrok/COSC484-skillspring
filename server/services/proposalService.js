@@ -1,4 +1,4 @@
-const { Proposal, sequelize, User, Student, Task, Company, TaskAsset } = require('../models');
+const { Proposal, sequelize, User, Student, Task, Company, TaskAsset, Submission } = require('../models');
 const { ConflictError, BadRequestError, NotFoundError, ForbiddenError } = require('../utils/httpExceptions');
 const { parseTaskId } = require('../utils/taskUtils');
 const { PROPOSAL_STATUS } = require('../constants/proposalConstants');
@@ -28,6 +28,7 @@ async function assertNdaAccess(userId, taskId, include) {
 }
 
 module.exports = {
+    assertNdaAccess,
     sendProposal: async (userId, taskId, approach, est_hrs, questions) => {
         const student = await Student.findOne({ where: { user_id: userId }, attributes: ['id'] });
 
@@ -54,11 +55,11 @@ module.exports = {
         const proposals = await Proposal.findAll({
            where: { student_id: student.id },
            attributes: ['id', 'status', 'proposed_hours', 'created_at', 'nda_signed'],
-           include: {
+           include: [{
                model: Task,
                attributes: ['id', 'title', 'task_type', 'difficulty', 'deadline'],
                include: { model: Company, attributes: ['name'] },
-           },
+           }, { model: Submission, attributes: ['submitted_at', 'zip_status']}],
            order: [['created_at', 'DESC']],
        });
 
@@ -153,18 +154,17 @@ module.exports = {
         const proposals = await Proposal.findAll({
            where: { student_id: user.id, status: PROPOSAL_STATUS.ACCEPTED, nda_signed: true },
            attributes: ['id', 'status', 'proposed_hours', 'created_at', 'nda_signed'],
-           include: {
-               model: Task,
-               attributes: ['id', 'title', 'task_type', 'difficulty', 'deadline'],
-               include: { model: Company, attributes: ['name'] },
-           },
-           order: [['created_at', 'DESC']],
+           include: [
+               {
+                   model: Task,
+                   attributes: ['id', 'title', 'task_type', 'difficulty', 'deadline'],
+                   include: { model: Company, attributes: ['name'] },
+               },
+               { model: Submission, attributes: ['id', 'submitted_at', 'zip_status'] },
+           ],
+           order: [['created_at', 'DESC'], [Submission, 'submitted_at', 'DESC']],
        });
 
-        if (!proposals) {
-            throw new BadRequestError('no proposals found for given student');
-        }
-        
         return { data: proposals };
     },
 }

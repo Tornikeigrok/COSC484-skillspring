@@ -478,10 +478,24 @@ module.exports = {
         const userInfo = await Student.findByPk(studentId, 
             { 
                 attributes: ['user_id', 'github_url', 'university', 'graduation_year', 'verification_status', 'skills', 'bio'],
-                include: {
+                include: [{
                     model: User,
                     attributes: ['first_name', 'last_name', 'role', 'email'],
-                }
+                }, {
+                    model: Submission,
+                    attributes: ['id'],
+                    include: {
+                        model: Review,
+                        attributes: ['status', 
+                            'company_id', 
+                            'functionality', 'quality', 
+                            'documentation', 'communication', 'reviewed_at'],
+                        include: {
+                            model: Company,
+                            attributes: ['name', 'website'],
+                        },
+                    },
+                }],
             },
         );
         return { data: userInfo };

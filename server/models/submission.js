@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Submission.belongsTo(models.Proposal, { foreignKey: 'proposal_id' });
       Submission.belongsTo(models.Student, { foreignKey: 'student_id' });
+      Submission.hasOne(models.Review, { foreignKey: 'submission_id' });
     }
   }
   Submission.init({

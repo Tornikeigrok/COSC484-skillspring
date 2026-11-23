@@ -513,6 +513,11 @@ module.exports = {
                     attributes: ['id'],
                     include: { model: User, attributes: ['first_name', 'last_name', 'email'] },
                 },
+                // null until the company reviews it, then the client hides the review action
+                {
+                    model: Review,
+                    attributes: ['id', 'status', 'feedback', ...REVIEW_CRITERIA, 'reviewed_at'],
+                },
             ],
             order: [['submitted_at', 'DESC']],
         });

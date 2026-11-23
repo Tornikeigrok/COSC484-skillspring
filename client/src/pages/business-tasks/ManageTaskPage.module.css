@@ -393,6 +393,33 @@
   font-weight: 700;
 }
 
+/* Submission tab */
+.submissions {
+  display: grid;
+  gap: 16px;
+}
+
+.submission {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  padding: 24px 28px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.fileAction {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.file .fileAction svg {
+  width: 16px;
+  height: 16px;
+}
+
 .detailActions {
   display: flex;
   align-items: center;
@@ -415,6 +442,16 @@
 
 .ghostLink:hover {
   background-color: var(--color-canvas);
+}
+
+.rateLink {
+  border-color: var(--color-brand);
+  background-color: var(--color-brand);
+  color: #fff;
+}
+
+.rateLink:hover {
+  background-color: var(--color-brand-hover);
 }
 
 @media (max-width: 640px) {

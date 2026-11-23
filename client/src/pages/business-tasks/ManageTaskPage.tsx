@@ -4,6 +4,7 @@ import * as Menu from '@radix-ui/react-dropdown-menu';
 import { toast } from 'sonner';
 import { fullName } from '../../lib/types';
 import {
+  Badge,
   Button,
   Card,
   ConfirmDialog,
@@ -29,6 +30,7 @@ import { Empty } from './components/Empty';
 import { Icon } from './components/Icon';
 import styles from './ManageTaskPage.module.css';
 import { useFetchAllTasks, useTaskDetails, useGetTaskProposals, useSendNda } from './hooks';
+import { useDownloadSubmission, useSubmissionsForTask } from '../assignments/hooks';
 
 export default function ManageTaskPage() {
   const { id } = useParams();
@@ -51,6 +53,12 @@ export default function ManageTaskPage() {
   const studentSelected = !!assigned;
 
   const { mutate: sendNda, isPending: sendingNda } = useSendNda();
+
+  // Only an assigned student who signed the NDA can submit, so skip the request before that
+  const submissionsQuery = useSubmissionsForTask(Number(id), tab === 'submission' || !!assigned?.nda_signed);
+  const submissions = submissionsQuery.data ?? [];
+  const latest = submissions[0];
+  const download = useDownloadSubmission();
 
   const publicUrl = `/tasks/${id}`;
 
@@ -161,7 +169,7 @@ export default function ManageTaskPage() {
               >
                 <Icon d={TABS[key].icon} />
                 {TABS[key].label}
-                {key === 'proposals' && <span className={tasks.count}>{proposals.length}</span>}
+                {key === 'proposals' ? <span className={tasks.count}>{proposals.length}</span> : key === 'submission' && <span className={tasks.count}>{submissions?.length}</span>}
               </button>
             ))}
           </div>
@@ -286,25 +294,112 @@ export default function ManageTaskPage() {
                 <Empty
                   icon={PATHS.layers}
                   title={
-                    assigned.nda_signed
-                      ? `${nameOf(assigned)} is working on this`
-                      : `Waiting for ${nameOf(assigned)} to sign the NDA`
+                    latest
+                      ? `${nameOf(assigned)} submitted their work`
+                      : assigned.nda_signed
+                        ? `${nameOf(assigned)} is working on this`
+                        : `Waiting for ${nameOf(assigned)} to sign the NDA`
                   }
                 >
-                  <Link className={buttonClass()} to={`/profiles/${assigned.student_id}`}>
-                    View student profile →
-                  </Link>
+                  {latest ? (
+                    <Button onClick={() => setTab('submission')}>View submission →</Button>
+                  ) : (
+                    <Link className={buttonClass()} to={`/profiles/${assigned.student_id}`}>
+                      View student profile →
+                    </Link>
+                  )}
                 </Empty>
               ) : (
                 <Empty icon={PATHS.layers} title="No student selected yet">
                   <p>Pick a student from the proposals to create an assignment.</p>
                 </Empty>
               ))}
-            {tab === 'submission' && (
-              <Empty icon={PATHS.file} title="No submission yet">
-                <p>The selected student's work will appear here once they submit it.</p>
-              </Empty>
-            )}
+            {tab === 'submission' &&
+              (submissionsQuery.isPending ? (
+                <p className={text.mutedSmall} role="status">
+                  Loading submission…
+                </p>
+              ) : submissionsQuery.isError ? (
+                <ErrorMessage
+                  error={submissionsQuery.error}
+                  retry={() => submissionsQuery.refetch()}
+                />
+              ) : submissions.length ? (
+                <div className={styles.submissions}>
+                  {submissions.map((sub) => {
+                    const name = sub.Student?.User ? fullName(sub.Student.User) : 'Student';
+                    const filename = `T-${task.id}-submission-${sub.id}.zip`;
+                    return (
+                      <article key={sub.id} className={styles.submission}>
+                        <header className={styles.detailHead}>
+                          <span className={cx(styles.avatar, styles.avatarLg)} aria-hidden="true">
+                            {initials(name)}
+                          </span>
+                          <div className={styles.detailWho}>
+                            <h3>{name}</h3>
+                            <p>Submitted {formatDateTime(sub.submitted_at)}</p>
+                          </div>
+                          <Badge tone="success">Zip content has passed the checks</Badge>
+                        </header>
+
+                        <div className={styles.file}>
+                          <Icon d={PATHS.file} />
+                          <div className={styles.fileInfo}>
+                            <strong>{filename}</strong>
+                            <small>Passed automatic checks · ZIP archive</small>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            className={styles.fileAction}
+                            busy={download.isPending && download.variables?.id === sub.id}
+                            onClick={() => download.mutate({ id: sub.id, filename })}
+                          >
+                            <Icon d={PATHS.download} />
+                            Download
+                          </Button>
+                        </div>
+
+                        <section className={styles.detailSection}>
+                          <h4>Notes from the student</h4>
+                          <p className={styles.approach}>{sub.notes || 'No notes added.'}</p>
+                        </section>
+
+                        {sub.github_url && (
+                          <section className={styles.detailSection}>
+                            <h4>Repository</h4>
+                            <a
+                              className={links.textLink}
+                              href={sub.github_url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {sub.github_url}
+                            </a>
+                          </section>
+                        )}
+
+                        {sub.Student && (
+                          <footer className={styles.detailActions}>
+                            <Link className={styles.ghostLink} to={`/profiles/${sub.Student.id}`}>
+                              View profile
+                            </Link>
+                            <Link
+                              to={`/business/tasks/review/${task.id}?submission=${sub.id}`}
+                              className={cx(styles.ghostLink, styles.rateLink)}
+                            >
+                              Review &amp; rate
+                            </Link>
+                          </footer>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <Empty icon={PATHS.file} title="No submission yet">
+                  <p>The selected student's work will appear here once they submit it.</p>
+                </Empty>
+              ))}
             {tab === 'review' && (
               <Empty icon={PATHS.check} title="Nothing to review yet">
                 <p>Review and approve the work after a submission comes in.</p>
@@ -335,6 +430,12 @@ export default function ManageTaskPage() {
           <Card>
             <h2 className={styles.cardTitle}>Activity</h2>
             <ol className={styles.timeline}>
+              {latest && (
+                <li>
+                  <strong>Work submitted</strong>
+                  <small>{formatDateTime(latest.submitted_at)}</small>
+                </li>
+              )}
               {asset && (
                 <li>
                   <strong>Starter files uploaded</strong>

@@ -1,5 +1,8 @@
 const { BadRequestError } = require("./httpExceptions");
-const { TASK_TYPE, TASK_DIFFICULTY } = require('../constants/taskConstants');
+const { TASK_TYPE, TASK_DIFFICULTY, TASK_UPLOAD_DIR } = require('../constants/taskConstants');
+const crypto = require('crypto');
+const path = require('path');
+const fs = require('fs/promises');
 
 
 function checkText(value, field, max) {
@@ -50,7 +53,7 @@ function checkDeadline(value) {
     return deadline;
 }
 
-function checkFile(file) {
+function checkFileExists(file) {
     if (!file) {
         throw new BadRequestError('Zip file is required');
     }
@@ -63,12 +66,37 @@ function checkFile(file) {
 
 const MAX_TASK_ID = 2147483647; // largest value the integer id column can hold
 
-// Task ids arrive as strings in the URL
-function parseTaskId(value) {
+// Ids arrive as strings in the URL
+function parseTaskId(value, label = 'task') {
     if (typeof value !== 'string' || !/^\d+$/.test(value) || Number(value) < 1 || Number(value) > MAX_TASK_ID) {
-        throw new BadRequestError('Invalid task id');
+        throw new BadRequestError(`Invalid ${label} id`);
     }
     return Number(value);
+}
+
+// Optional free text, empty means none
+function checkNotes(value) {
+    if (value === undefined || value === null || value === '') return null;
+    if (typeof value !== 'string') {
+        throw new BadRequestError('Notes must be text');
+    }
+    const text = value.trim();
+    if (text.length > 2000) {
+        throw new BadRequestError('Notes cannot exceed 2000 characters');
+    }
+    return text || null;
+}
+
+/**
+ * Create random UUID for each zip so names don't collide
+ * mkdir will create a folder in which all zips will go
+ * each zip then has to be written into the created folder.
+ */
+async function saveZip(file) {
+    const storedFilename = `${crypto.randomUUID()}.zip`;
+    await fs.mkdir(TASK_UPLOAD_DIR, { recursive: true });
+    await fs.writeFile(path.join(TASK_UPLOAD_DIR, storedFilename), file.buffer);
+    return storedFilename;
 }
 
 module.exports = {
@@ -78,6 +106,8 @@ module.exports = {
     checkEstHrs,
     checkDeadline,
     checkDifficulty,
-    checkFile,
+    checkFileExists,
     parseTaskId,
+    checkNotes,
+    saveZip,
 }

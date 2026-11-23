@@ -1,5 +1,6 @@
-const { sequelize, User, Company, Task, TaskAsset, Student, Proposal, Submission } = require('../models');
+const { sequelize, User, Company, Task, TaskAsset, Student, Proposal, Submission, Review } = require('../models');
 const { SUBMISSION_ZIP_STATUS } = require('../constants/submissionConstants');
+const { REVIEW_VERDICT, REVIEW_SCORE_MIN, REVIEW_SCORE_MAX, REVIEW_CRITERIA, MAX_FEEDBACK_LENGTH } = require('../constants/reviewConstants');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError, UnauthorizedError } = require('../utils/httpExceptions');
 const { validateName, validateEmail, validatePassword } = require('../utils/authUtils');
 const bcrypt = require('bcrypt');
@@ -546,6 +547,79 @@ module.exports = {
             filePath: path.join(TASK_UPLOAD_DIR, submission.submission_zip_path),
             downloadName: `submission-${submissionId}.zip`,
         };
+    },
+    // Company's final review of a submission. The verdict decides where the task goes next.
+    reviewSubmission: async (userId, rawSubmissionId, verdict, feedback, scores) => {
+        const submissionId = parseTaskId(rawSubmissionId, 'submission');
+
+        if (!Object.values(REVIEW_VERDICT).includes(verdict)) {
+            throw new BadRequestError('Invalid verdict');
+        }
+        const cleanFeedback = validateRequiredText(feedback, 'Feedback', MAX_FEEDBACK_LENGTH);
+
+        const cleanScores = {};
+        for (const field of REVIEW_CRITERIA) {
+            const score = scores[field];
+            if (!Number.isInteger(score) || score < REVIEW_SCORE_MIN || score > REVIEW_SCORE_MAX) {
+                throw new BadRequestError(`${field} must be a score from ${REVIEW_SCORE_MIN} to ${REVIEW_SCORE_MAX}`);
+            }
+            cleanScores[field] = String(score);
+        }
+
+        const company = await Company.findOne({ attributes: ['id'], where: { user_id: userId } });
+        if (!company) {
+            throw new NotFoundError('Company profile not found');
+        }
+
+        // Only clean zips on this company's own tasks, same rule as submissionZipPath
+        const submission = await Submission.findOne({
+            where: { id: submissionId, zip_status: SUBMISSION_ZIP_STATUS.ACCEPTED },
+            attributes: ['id'],
+            include: {
+                model: Proposal,
+                attributes: ['id', 'task_id'],
+                required: true,
+                include: { model: Task, attributes: [], where: { company_id: company.id }, required: true },
+            },
+        });
+        if (!submission) {
+            throw new NotFoundError('Submission not found');
+        }
+
+        const nextTaskStatus = {
+            [REVIEW_VERDICT.ACCEPT]: TASK_STATUS.COMPLETED,
+            [REVIEW_VERDICT.REQUEST_CHANGES]: TASK_STATUS.IN_PROGRESS, // student can submit again
+            [REVIEW_VERDICT.REJECT]: TASK_STATUS.CLOSED,
+        }[verdict];
+
+        try {
+            const review = await sequelize.transaction(async (t) => {
+                // Conditional update so the task must still be waiting on a review, and two reviews can't both win
+                const [moved] = await Task.update(
+                    { status: nextTaskStatus },
+                    { where: { id: submission.Proposal.task_id, status: TASK_STATUS.SUBMITTED }, transaction: t },
+                );
+                if (moved === 0) {
+                    throw new BadRequestError('Submission is not awaiting review');
+                }
+
+                return await Review.create({
+                    submission_id: submission.id,
+                    company_id: company.id,
+                    feedback: cleanFeedback,
+                    status: verdict,
+                    ...cleanScores,
+                }, { transaction: t });
+            });
+
+            return { statusCode: 201, data: review };
+        } catch (err) {
+            // submission_id is unique, so an older submission can't be reviewed twice
+            if (err.name === 'SequelizeUniqueConstraintError') {
+                throw new ConflictError('This submission has already been reviewed');
+            }
+            throw err;
+        }
     },
     // When company selects student, we send out an email.
     // Include taskId and student email so we send email to that address

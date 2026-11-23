@@ -40,6 +40,9 @@ module.exports = {
     taskSubmissions: async (input) => {
         return await companyService.taskSubmissions(input.userId, input.taskId);
     },
+    reviewSubmission: async (input) => {
+        return await companyService.reviewSubmission(input.userId, input.submissionId, input.verdict, input.feedback, input);
+    },
     selectStudent: async (input) => {
         return await companyService.selectStudent(input.userId, input.email, input.taskId);
     },

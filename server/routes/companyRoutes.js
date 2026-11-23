@@ -160,4 +160,18 @@ router.get('/submissions/:id/download', async (req, res, next) => {
     }
 });
 
+router.post('/submissions/:id/review', createHandler(
+    (req) => ({
+        userId: req.user.userId,
+        submissionId: req.params.id,
+        verdict: req.body.verdict,
+        feedback: req.body.feedback,
+        functionality: req.body.functionality,
+        quality: req.body.quality,
+        documentation: req.body.documentation,
+        communication: req.body.communication,
+    }),
+    companyController.reviewSubmission,
+));
+
 module.exports = router;

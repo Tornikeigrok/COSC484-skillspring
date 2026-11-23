@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, buttonClass } from '../../components/ui';
 import { initials } from '../../utils/task-display';
 import type { ViewedStudent } from './hooks';
+import { ReviewedTasks } from './ReviewedTasks';
 import styles from './StudentProfileView.module.css';
 
 const ICON = {
@@ -36,6 +37,7 @@ export function StudentProfileView({ student }: { student: NonNullable<ViewedStu
   const verified = student.verification_status === 'verified';
   const year = student.graduation_year && `Class of ${student.graduation_year}`;
   const skills = student.skills ?? [];
+  const reviews = (student.Submissions ?? []).flatMap((s) => (s.Review ? [{ ...s, Review: s.Review }] : []));
 
   const facts = (
     <>
@@ -116,21 +118,7 @@ export function StudentProfileView({ student }: { student: NonNullable<ViewedStu
             <div className={styles.factRow}>{facts}</div>
           </Card>
 
-          <div className={styles.sectionBar}>
-            <h2>Experience</h2>
-            <span>0 completed</span>
-          </div>
-          <Card className={styles.empty}>
-            <span className={styles.emptyIcon}>
-              <svg {...ICON} width={18} height={18}>
-                <rect x="3" y="7" width="18" height="13" rx="2" />
-                <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18" />
-              </svg>
-            </span>
-            <h3>No verified experience yet</h3>
-            <p>This student hasn’t added any experience to their profile.</p>
-            <p className={styles.emptyNote}>Experience will appear here once it’s been verified.</p>
-          </Card>
+          <ReviewedTasks reviews={reviews} forCompany />
         </div>
 
         <aside>

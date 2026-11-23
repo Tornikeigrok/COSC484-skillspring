@@ -3,7 +3,6 @@ import { fullName } from '../../lib/types';
 import {
   Badge,
   Card,
-  DateLabel,
   EmptyState,
   Loading,
   PageHeading,
@@ -19,20 +18,22 @@ import { toOwnProfile } from './utils/own-profile';
 import styles from './ProfilePage.module.css';
 import { CompanyProfileView } from './CompanyProfileView';
 import { StudentProfileView } from './StudentProfileView';
-import { useViewStudent } from './hooks';
+import { useViewStudent, useViewedTasks } from './hooks';
+import { ReviewedTasks } from './ReviewedTasks';
 
 export default function ProfilePage() {
   const { id } = useParams(); // student_id when a company views a student
   const { data: me, isPending } = useCurrentUser();
   const own = !id;
   const { data: studentView, isPending: viewProfilePending } = useViewStudent(id);
+  const reviewed = useViewedTasks(own && me?.role === 'student');
 
   if (own ? isPending : viewProfilePending) return <Loading />;
   if (!own && studentView) return <StudentProfileView student={studentView} />;
 
   const data = own && me ? toOwnProfile(me) : undefined;
   if (!data) return <EmptyState title="Profile not found.">This profile doesn’t exist or isn’t available.</EmptyState>;
-  const { user, profile, experiences } = data;
+  const { user, profile } = data;
   const student = user.role === 'student';
   if (!student) return <CompanyProfileView user={user} profile={profile} own={own} />;
 
@@ -86,42 +87,12 @@ export default function ProfilePage() {
             )}
           </Card>
           {student && (
-            <>
-              <div className={layout.sectionBar}>
-                <h2>Verified experience</h2>
-                <span className={text.muted}>{experiences.length} completed</span>
-              </div>
-              {experiences.length ? (
-                experiences.map((experience) => (
-                  <Card className={styles.experience} key={experience.id}>
-                    <div className={layout.headerRow}>
-                      <Badge tone="success">✓ Business approved</Badge>
-                      <span
-                        className={styles.stars}
-                        aria-label={`${experience.rating} out of 5 stars`}
-                      >
-                        {'★'.repeat(experience.rating)}
-                        <span aria-hidden="true">{'☆'.repeat(5 - experience.rating)}</span>
-                      </span>
-                    </div>
-                    <h2>{experience.title}</h2>
-                    <p className={text.muted}>
-                      {experience.company.name} · <DateLabel value={experience.completed_at} />
-                    </p>
-                    <p className={text.longText}>{experience.summary}</p>
-                    <div className={layout.tags}>
-                      {experience.skills.map((skill) => (
-                        <Badge key={skill}>{skill}</Badge>
-                      ))}
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <EmptyState title="The first proof point is ahead.">
-                  Approved work appears here automatically after business review.
-                </EmptyState>
-              )}
-            </>
+            <ReviewedTasks
+              reviews={reviewed.data}
+              isPending={reviewed.isPending}
+              error={reviewed.error}
+              retry={reviewed.refetch}
+            />
           )}
         </div>
         <aside>

@@ -104,6 +104,11 @@ a.row:focus-visible {
   font-size: 12px;
 }
 
+.submittedBadge {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .due {
   display: grid;
   font-size: 12px;
@@ -124,8 +129,13 @@ a.row:focus-visible {
   font-weight: 500;
 }
 
+.row.submissionRow {
+  grid-template-columns: minmax(0, 1fr) 200px 100px;
+}
+
 @media (max-width: 640px) {
-  .row {
+  .row,
+  .row.submissionRow {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 

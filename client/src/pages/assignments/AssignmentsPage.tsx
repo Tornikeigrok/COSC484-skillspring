@@ -1,25 +1,11 @@
 import { Link } from 'react-router-dom';
-import { EmptyState, ErrorMessage, Loading } from '../../components/ui';
+import { Badge, EmptyState, ErrorMessage, Loading } from '../../components/ui';
 import { DIFFICULTY_LABELS, TASK_TYPE_LABELS } from '../../constants/tasks';
 import { formatEstimate, initials } from '../../utils/task-display';
-import { useDisplayMyWork } from './hooks';
+import { latestSubmission, useDisplayMyWork } from './hooks';
+import { useCurrentUser } from '../home/hooks/use-profile';
+import CompanySubmissionsPage from './CompanySubmissionsPage';
 import styles from './AssignmentsPage.module.css';
-
-interface MyWork {
-  id: number;
-  status: string;
-  proposed_hours: number;
-  created_at: string;
-  nda_signed: boolean;
-  Task: {
-    id: number;
-    title: string;
-    task_type: keyof typeof TASK_TYPE_LABELS;
-    difficulty: keyof typeof DIFFICULTY_LABELS;
-    deadline: string | null;
-    Company: { name: string } | null;
-  };
-}
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -34,9 +20,16 @@ function dueLabel(iso: string | null) {
   return { date, hint: `in ${days}d`, tone: days <= 2 ? styles.soon : '' };
 }
 
+// Companies don't get assignments, they see what students submitted
 export default function AssignmentsPage() {
+  const { data: user } = useCurrentUser();
+  if (!user) return <Loading />;
+  return user.role === 'student' ? <StudentAssignments /> : <CompanySubmissionsPage />;
+}
+
+function StudentAssignments() {
   const { data, isPending, error, refetch } = useDisplayMyWork();
-  const work = (data ?? []) as MyWork[];
+  const work = data ?? [];
 
   return (
     <div className={styles.page}>
@@ -59,9 +52,11 @@ export default function AssignmentsPage() {
             <span>Due</span>
           </div>
 
-          {work.map(({ id, Task: task, proposed_hours }) => {
+          {work.map((item) => {
+            const { id, Task: task, proposed_hours } = item;
             const company = task.Company?.name ?? 'Company';
             const due = dueLabel(task.deadline);
+            const submitted = latestSubmission(item);
             return (
               <Link key={id} className={styles.row} to={`/assignment/${task.id}`}>
                 <span className={styles.task}>
@@ -72,6 +67,11 @@ export default function AssignmentsPage() {
                     <span className={styles.taskTitle}>{task.title}</span>
                     <span className={styles.company}>{company}</span>
                   </span>
+                  {submitted && (
+                    <Badge tone="success" className={styles.submittedBadge}>
+                      Submitted
+                    </Badge>
+                  )}
                 </span>
                 <span className={styles.hideSm}>
                   {TASK_TYPE_LABELS[task.task_type]?.label ?? task.task_type}
@@ -82,7 +82,8 @@ export default function AssignmentsPage() {
                 <span className={styles.hideSm}>{formatEstimate(proposed_hours)}</span>
                 <span className={styles.due}>
                   <span className={styles.dueDate}>{due.date}</span>
-                  {due.hint && <span className={due.tone}>{due.hint}</span>}
+                  {/* Deadline urgency no longer matters once work is in */}
+                  {!submitted && due.hint && <span className={due.tone}>{due.hint}</span>}
                 </span>
               </Link>
             );

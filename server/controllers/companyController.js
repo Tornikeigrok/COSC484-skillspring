@@ -37,6 +37,9 @@ module.exports = {
     fetchProfileForView: async (input) => {
         return await companyService.fetchProfileForView(input.studentId);
     },
+    taskSubmissions: async (input) => {
+        return await companyService.taskSubmissions(input.userId, input.taskId);
+    },
     selectStudent: async (input) => {
         return await companyService.selectStudent(input.userId, input.email, input.taskId);
     },

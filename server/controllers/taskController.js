@@ -8,4 +8,7 @@ module.exports = {
     getTask: async (input) => {
         return await taskService.getTask(input.userId, input.role, input.taskId);
     },
+    submitTask: async (input) => {
+        return await taskService.submitTask(input.userId, input.taskId, input.file, input.notes);
+    },
 }
